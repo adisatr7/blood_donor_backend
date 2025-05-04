@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./client"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum BloodType {
+  A
+  B
+  AB
+  O
+}
+
+enum Rhesus {
+  POSITIVE
+  NEGATIVE
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  ATTENDED
+  MISSED
+}
+
+model User {
+  id             Int        @id @default(autoincrement())
+  nik            String     @unique
+  name           String
+  password       String
+  profilePicture String?    @map("profile_picture")
+  birthPlace     String?    @map("birth_place")
+  birthDate      DateTime   @map("birth_date")
+  gender         Gender?
+  job            String?
+  weightKg       Float?     @map("weight_kg")
+  heightCm       Float?     @map("height_cm")
+  bloodType      BloodType? @map("blood_type")
+  rhesus         Rhesus?
+  address        String?
+  noRt           Int?       @map("no_rt")
+  noRw           Int?       @map("no_rw")
+  village        String?
+  district       String?
+  city           String?
+  province       String?
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  Appointments  Appointment[]
+  Questionnaire Questionnaire[]
+
+  @@map("users")
+}
+
+model Location {
+  id        Int      @id @default(autoincrement())
+  name      String
+  latitude  Float
+  longitude Float
+  startTime DateTime @map("start_time")
+  endTime   DateTime @map("end_time")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  Appointments Appointment[]
+
+  @@index([name])
+  @@map("locations")
+}
+
+model Appointment {
+  id         Int               @id @default(autoincrement())
+  userId     Int               @map("user_id")
+  locationId Int               @map("location_id")
+  time       DateTime
+  status     AppointmentStatus
+  createdAt  DateTime          @default(now()) @map("created_at")
+  updatedAt  DateTime          @updatedAt @map("updated_at")
+
+  User          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Location      Location        @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  Questionnaire Questionnaire[]
+
+  @@index([userId])
+  @@index([locationId])
+  @@index([time])
+  @@map("appointments")
+}
+
+model Questionnaire {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @map("user_id")
+  appointmentId Int      @map("appointment_id")
+  number        Int
+  question      String
+  answer        String
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  User        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([appointmentId])
+  @@map("questionnaires")
+}
