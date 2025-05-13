@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . .
 
 # Install openssl which is required for Prisma
-RUN apt-get update -y && apt-get install -y openssl
+RUN apt-get update -y && apt-get install -y openssl && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install the dependencies using Bun
 RUN bun install --no-cache
