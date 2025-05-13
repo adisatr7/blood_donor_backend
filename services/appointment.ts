@@ -77,7 +77,7 @@ export default class AppointmentService {
       const userId = req.user!.id; // Route is protected, thus it's ensured the value won't be null
       const appointmentId = parseInt(req.params.id);
 
-      const appointment = await prisma.appointment.findUnique({
+      const appointment = await prisma.appointment.findFirst({
         where: { id: appointmentId, userId },
         include: {
           Questionnaire: true,
