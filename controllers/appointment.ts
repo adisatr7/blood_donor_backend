@@ -3,7 +3,7 @@ import validateRequestBody from "../middlewares/validateRequestBody";
 import AppointmentService from "../services/appointment";
 
 // Required fields for creating an appointment
-const createParams = ["id", "locationId", "time"];
+const createParams = ["locationId", "time"];
 
 const router = express.Router();
 
