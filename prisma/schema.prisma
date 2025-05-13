@@ -53,23 +53,23 @@ model User {
   city           String?
   province       String?
   createdAt      DateTime   @default(now()) @map("created_at")
-  updatedAt      DateTime   @updatedAt @map("updated_at")
+  updatedAt      DateTime?  @updatedAt @map("updated_at")
 
-  Appointments  Appointment[]
-  Questionnaire Questionnaire[]
+  Appointments Appointment[]
 
   @@map("users")
 }
 
 model Location {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   name      String
   latitude  Float
   longitude Float
-  startTime DateTime @map("start_time")
-  endTime   DateTime @map("end_time")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  startTime DateTime  @map("start_time")
+  endTime   DateTime  @map("end_time")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
 
   Appointments Appointment[]
 
@@ -84,7 +84,7 @@ model Appointment {
   time       DateTime
   status     AppointmentStatus
   createdAt  DateTime          @default(now()) @map("created_at")
-  updatedAt  DateTime          @updatedAt @map("updated_at")
+  updatedAt  DateTime?         @updatedAt @map("updated_at")
 
   User          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   Location      Location        @relation(fields: [locationId], references: [id], onDelete: Cascade)
@@ -97,19 +97,16 @@ model Appointment {
 }
 
 model Questionnaire {
-  id            Int      @id @default(autoincrement())
-  userId        Int      @map("user_id")
-  appointmentId Int      @map("appointment_id")
-  number        Int
+  id            Int       @id @default(autoincrement())
+  appointmentId Int       @map("appointment_id")
+  number        Int // Starts from 1
   question      String
   answer        String
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime? @updatedAt @map("updated_at")
 
-  User        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   Appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
   @@index([appointmentId])
   @@map("questionnaires")
 }
