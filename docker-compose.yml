@@ -1,0 +1,46 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes:
+      - .:/app:delegated
+    networks:
+      - blood_donor_network
+    command: >
+      sh -c "
+      until bunx prisma db push; do
+        echo 'Waiting for the database...';
+        sleep 2;
+      done;
+      bun app.ts
+      "
+
+  db:
+    image: mariadb:latest
+    container_name: mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: blood_donor
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpassword
+    ports:
+      - "3307:3306"
+    volumes:
+      - blood_donor_database:/var/lib/mysql
+    networks:
+      - blood_donor_network
+
+volumes:
+  blood_donor_database:
+
+networks:
+  blood_donor_network:
+    name: blood_donor_network
