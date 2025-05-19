@@ -9,11 +9,6 @@ const loginParams = ["nik", "password"];
 const registerParams = ["nik", "name", "password", "birthDate"];
 
 router.post("/login", validateRequestBody(loginParams), AuthService.login);
-router.post("/token/refresh", AuthService.refreshToken);
-router.post(
-  "/register",
-  validateRequestBody(registerParams),
-  AuthService.signup,
-);
+router.post("/register",validateRequestBody(registerParams), AuthService.signup);
 
 export default router;

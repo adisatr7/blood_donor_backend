@@ -5,11 +5,7 @@ import prisma from "../prisma/prismaClient";
 
 // Secret keys taken from environment variables
 const JWT_SECRET = process.env.JWT_SECRET ?? "";
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET ?? "";
-
-// Token expiry times
-const JWT_EXPIRE = "1h";
-const REFRESH_TOKEN_EXPIRE = "1d";
+const JWT_EXPIRE = process.env.JWT_EXPIRE ?? "1h";
 
 /**
  * Service for handling authentication operations.
@@ -21,7 +17,7 @@ export default class AuthService {
   static async login(
     req: Request,
     res: Response,
-    next: NextFunction,
+    next: NextFunction
   ): Promise<void> {
     // Get login information
     const { nik, password } = req.body;
@@ -47,80 +43,11 @@ export default class AuthService {
 
       // Generate JWT token
       const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
-        expiresIn: JWT_EXPIRE,
-      });
-
-      // Generate Refresh Token
-      const refreshToken = jwt.sign({ userId: user.id }, REFRESH_TOKEN_SECRET, {
-        expiresIn: REFRESH_TOKEN_EXPIRE,
-      });
-
-      // Set the refresh token in the cookie
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24,
-        sameSite: "strict",
-        secure: false, // ! Set this to true for production
+        expiresIn: JWT_EXPIRE as any, // To supress TypeScript error
       });
 
       // Return the generated tokens
-      res.json({ success: true, token, refreshToken });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  /**
-   * Refresh token function
-   */
-  static async refreshToken(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
-    try {
-      // Get the refresh token from the request
-      const refreshToken = req.cookies?.refreshToken;
-
-      // If no refresh token is provided, return an error
-      if (!refreshToken) {
-        res.status(401).json({ error: "Refresh token required!" });
-        return;
-      }
-
-      // Verify the refresh token
-      const decoded: any = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
-
-      // If the token is invalid, return an error
-      if (!decoded || !decoded.userId) {
-        res.status(403).json({ error: "Invalid refresh token" });
-        return;
-      }
-
-      // Generate a new JWT token
-      const newToken = jwt.sign({ userId: decoded.userId }, JWT_SECRET, {
-        expiresIn: JWT_EXPIRE,
-      });
-
-      // Generate a new refresh token
-      const newRefreshToken = jwt.sign(
-        { userId: decoded.userId },
-        REFRESH_TOKEN_SECRET,
-        {
-          expiresIn: REFRESH_TOKEN_EXPIRE,
-        },
-      );
-
-      // Set the new refresh token in the cookie
-      res.cookie("refreshToken", newRefreshToken, {
-        httpOnly: true,
-        maxAge: 1000 * 60 * 60 * 24,
-        sameSite: "strict",
-        secure: false, // ! Set this to true for production
-      });
-
-      // Return the new tokens
-      res.json({ success: true, token: newToken });
+      res.json({ success: true, token });
     } catch (error) {
       next(error);
     }
@@ -132,7 +59,7 @@ export default class AuthService {
   static async signup(
     req: Request,
     res: Response,
-    next: NextFunction,
+    next: NextFunction
   ): Promise<void> {
     try {
       // Get registration information
