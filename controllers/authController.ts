@@ -1,6 +1,6 @@
 import express from "express";
 import validateRequestBody from "../middlewares/validateRequestBody";
-import AuthService from "../services/auth";
+import AuthService from "../services/authService";
 
 const router = express.Router();
 

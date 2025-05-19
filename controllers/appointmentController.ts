@@ -1,6 +1,6 @@
 import express from "express";
 import validateRequestBody from "../middlewares/validateRequestBody";
-import AppointmentService from "../services/appointment";
+import AppointmentService from "../services/appointmentService";
 
 // Required fields for creating an appointment
 const createParams = ["locationId", "time"];
