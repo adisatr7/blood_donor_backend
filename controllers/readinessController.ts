@@ -1,5 +1,5 @@
 import express from "express";
-import ReadinessService from "../services/readiness";
+import ReadinessService from "../services/readinessService";
 
 const router = express.Router();
 

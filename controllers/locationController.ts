@@ -1,6 +1,6 @@
 import express from "express";
 import validateRequestBody from "../middlewares/validateRequestBody";
-import LocationService from "../services/location";
+import LocationService from "../services/locationService";
 
 const router = express.Router();
 
