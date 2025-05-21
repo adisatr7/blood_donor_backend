@@ -4,16 +4,14 @@ import prisma from "../prisma/prismaClient";
 
 export default class UserService {
   /**
-   * Get user profile
+   * Ambil data user yang sedang login
    */
-  static async get(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
+  static async get(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = req.user!.id; // Route is protected, thus it's ensured the value won't be null
+      // Ambil ID user yang sedang login
+      const userId = req.user!.id;
 
+      // Ambil data user dari database
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: {
@@ -39,13 +37,16 @@ export default class UserService {
         },
       });
 
+      // Jika tidak ada user dengan ID tersebut, kirimkan pesan error
       if (!user) {
-        res.status(404).json({ success: false, error: "User not found" });
+        res.status(404).json({ success: false, error: "ID user tidak ditemukan, harap login kembali" });
         return;
       }
 
+      // Jika tidak ada masalah, kirimkan data user sebagai response ke aplikasi mobile
       res.status(200).json({ success: true, data: user });
     } catch (error) {
+      // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
       next(error);
     }
   }
@@ -53,16 +54,14 @@ export default class UserService {
   /**
    * Update user profile
    */
-  static async update(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
+  static async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = req.user!.id; // Route is protected, thus it's ensured the value won't be null
+      // Ambil ID user yang sedang login
+      const userId = req.user!.id;
 
-      // If there is a password in request body, warn the user
+      // Cegah jangan sampai ada password di request body
       if (req.body.password) {
+        // Jika ada password di request body, kirimkan pesan error
         res.status(400).json({
           success: false,
           error: "Password updates are not allowed in this operation.",
@@ -70,6 +69,7 @@ export default class UserService {
         return;
       }
 
+      // Ubah data user di database
       const updatedUser = await prisma.user.update({
         where: { id: userId },
         data: {
@@ -95,8 +95,10 @@ export default class UserService {
         },
       });
 
+      // Jika berhasil, kirimkan data user yang sudah di-update sebagai response
       res.status(200).json({ success: true, data: updatedUser });
     } catch (error) {
+      // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
       next(error);
     }
   }
@@ -104,16 +106,15 @@ export default class UserService {
   /**
    * Edit user password
    */
-  static async editPassword(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
+  static async editPassword(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = req.user!.id; // Route is protected, thus it's ensured the value won't be null
+      // Ambil ID user yang sedang login
+      const userId = req.user!.id;
+
+      // Ambil password lama dan baru dari request body
       const { oldPassword, newPassword, confirmNewPassword } = req.body;
 
-      // Ensure old and new passwords are different
+      // Pastikan password lama dan baru tidak sama
       if (oldPassword === newPassword) {
         res.status(400).json({
           success: false,
@@ -122,22 +123,24 @@ export default class UserService {
         return;
       }
 
-      // Check for password
+      // Ambil data user dari database
       const user = await prisma.user.findUnique({
         where: { id: userId },
       });
 
+      // Jika tidak ada user dengan ID tersebut, kirimkan pesan error
       if (!user) {
         res.status(404).json({
           success: false,
-          error: "User not found. Please logout and login again.",
+          error: "User tidak ditemukan, harap login kembali",
         });
         return;
       }
 
+      // Cek apakah password lama sesuai dengan yang ada di database
       const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
 
-      // If password is invalid
+      // Jika password lama tidak sesuai, kirimkan pesan error
       if (!isPasswordValid) {
         res
           .status(401)
@@ -145,8 +148,9 @@ export default class UserService {
         return;
       }
 
-      // Validate password confirmation
+      // Pastikan password baru dan konfirmasi password baru sama
       if (newPassword !== confirmNewPassword) {
+        // Jika password baru dan konfirmasi tidak sama, kirimkan pesan error
         res.status(400).json({
           success: false,
           error: "New password and confirmation do not match",
@@ -154,8 +158,9 @@ export default class UserService {
         return;
       }
 
-      // Ensure new password length is at least 8 characters
+      // Pastikan password baru memiliki panjang minimal 8 karakter
       if (newPassword.length < 8) {
+        // Jika password baru kurang dari 8 karakter, kirimkan pesan error
         res.status(400).json({
           success: false,
           error: "New password must be at least 8 characters long",
@@ -163,10 +168,10 @@ export default class UserService {
         return;
       }
 
-      // Hash the new password
+      // Enkripsi password baru menggunakan agar tidak mudah dibaca dan lebih aman
       const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-      // Update the password in the database
+      // Simpan password baru yang sudah dienkripsi ke database
       await prisma.user.update({
         where: { id: userId },
         data: {
@@ -175,8 +180,10 @@ export default class UserService {
         },
       });
 
+      // Jika berhasil, kirimkan pesan sukses
       res.status(200).json({ success: true, message: "Password updated" });
     } catch (error) {
+      // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
       next(error);
     }
   }

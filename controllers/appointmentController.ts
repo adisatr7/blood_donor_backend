@@ -2,15 +2,14 @@ import express from "express";
 import validateRequestBody from "../middlewares/validateRequestBody";
 import AppointmentService from "../services/appointmentService";
 
-// Required fields for creating an appointment
-const createParams = ["locationId", "time"];
+const createParams = ["locationId", "time"]; // Request body yang dibutuhkan untuk membuat appointment
 
-const router = express.Router();
+const router = express.Router(); // 🌐 http://localhost:3000/api/v1/appointments
 
-router.get("/:id", AppointmentService.getById);
-router.patch("/:id", validateRequestBody(), AppointmentService.update);
+router.get("/:id", AppointmentService.getById); // Ambil 1 appointment detail berdasarkan id
+router.patch("/:id", validateRequestBody(), AppointmentService.update); // Update appointment berdasarkan id
 
-router.post("/", validateRequestBody(createParams), AppointmentService.create);
-router.get("/", AppointmentService.getAll);
+router.post("/", validateRequestBody(createParams), AppointmentService.create); // Buat appointment baru
+router.get("/", AppointmentService.getAll); // Ambil semua appointment milik user yang sedang login
 
 export default router;

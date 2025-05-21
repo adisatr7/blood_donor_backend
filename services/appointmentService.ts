@@ -6,16 +6,15 @@ export default class AppointmentService {
   /**
    * Create a new appointment
    */
-  static async create(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
+  static async create(req: Request, res: Response, next: NextFunction) {
     try {
+      // Ambil data appointment baru dari request body
       const { locationId, status = "SCHEDULED", time }: Appointment = req.body;
-      const userId = req.user!.id; // Route is protected, thus it's ensured the value won't be null
 
-      // Check if the appointment time is in the past
+      // Ambil ID user yang sedang login
+      const userId = req.user!.id;
+
+      // Pastikan tanggal appointment tidak di masa lalu
       const currentTime = new Date();
       if (new Date(time) < currentTime) {
         res.status(400).json({
@@ -25,6 +24,7 @@ export default class AppointmentService {
         return;
       }
 
+      // Buat appointment baru di database
       const newAppointment = await prisma.appointment.create({
         data: {
           locationId,
@@ -34,8 +34,10 @@ export default class AppointmentService {
         },
       });
 
+      // Kirimkan response dengan status 201 Created (sukses)
       res.status(201).json(newAppointment);
     } catch (error) {
+      // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
       next(error);
     }
   }
@@ -43,24 +45,24 @@ export default class AppointmentService {
   /**
    * Get all appointments for a user
    */
-  static async getAll(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
+  static async getAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = req.user!.id; // Route is protected, thus it's ensured the value won't be null
+      // Ambil ID user yang sedang login
+      const userId = req.user!.id;
 
+      // Ambil semua appointment milik user yang sedang login
       const appointments = await prisma.appointment.findMany({
         where: { userId },
         orderBy: { time: "desc" },
       });
 
+      // Jika ada, kirimkan semua appointment sebagai response ke aplikasi mobile
       res.status(200).json({
         success: true,
         data: appointments,
       });
     } catch (error) {
+      // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
       next(error);
     }
   }
@@ -68,15 +70,13 @@ export default class AppointmentService {
   /**
    * Get a specific appointment by ID
    */
-  static async getById(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
+  static async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = req.user!.id; // Route is protected, thus it's ensured the value won't be null
+      // Ambil ID user yang sedang login dan ID appointment dari parameter URL
+      const userId = req.user!.id;
       const appointmentId = parseInt(req.params.id);
 
+      // Ambil appointment berdasarkan ID appointment dan ID user
       const appointment = await prisma.appointment.findFirst({
         where: { id: appointmentId, userId },
         include: {
@@ -85,19 +85,22 @@ export default class AppointmentService {
         },
       });
 
+      // Jika appointment tidak ditemukan, kirimkan response error 404
       if (!appointment) {
         res.status(404).json({
           success: false,
-          message: "Appointment not found",
+          message: "Anda belum memiliki appointment",
         });
         return;
       }
 
+      // Jika appointment ditemukan, kirimkan appointment sebagai response ke aplikasi mobile
       res.status(200).json({
         success: true,
         data: appointment,
       });
     } catch (error) {
+      // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
       next(error);
     }
   }
@@ -105,15 +108,13 @@ export default class AppointmentService {
   /**
    * Update an appointment
    */
-  static async update(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
+  static async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = req.user!.id; // Route is protected, thus it's ensured the value won't be null
+      // Ambil ID user yang sedang login dan ID appointment dari parameter URL
+      const userId = req.user!.id;
       const appointmentId = parseInt(req.params.id);
 
+      // Ubah data appointment sesuai request (hanya bisa ubah status dan/atau waktu)
       const updatedAppointment = await prisma.appointment.update({
         where: { id: appointmentId, userId },
         data: {
@@ -122,12 +123,40 @@ export default class AppointmentService {
         },
       });
 
+      // Jika berhasil, kirimkan appointment yang sudah di-update sebagai response
       res.status(200).json({
         success: true,
         data: updatedAppointment,
       });
     } catch (error) {
+      // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
       next(error);
     }
   }
+
+  // ? Method DELETE *sengaja tidak digunakan* karena appointment tidak seharusnya dapat dihapus
+  // static async cancel(req: Request, res: Response, next: NextFunction) {
+  //   try {
+  //     // Ambil ID user yang sedang login dan ID appointment dari parameter URL
+  //     const userId = req.user!.id;
+  //     const appointmentId = parseInt(req.params.id);
+
+  //     // Hapus appointment berdasarkan ID appointment dan ID user
+  //     await prisma.appointment.update({
+  //       where: { id: appointmentId, userId },
+  //       data: {
+  //         status: "MISSED",
+  //       },
+  //     });
+
+  //     // Kirimkan response sukses
+  //     res.status(200).json({
+  //       success: true,
+  //       message: "Appointment berhasil dibatalkan",
+  //     });
+  //   } catch (error) {
+  //     // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
+  //     next(error);
+  //   }
+  // }
 }

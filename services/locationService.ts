@@ -4,30 +4,31 @@ import prisma from "../prisma/prismaClient";
 
 export default class AppointmentService {
   /**
-   * Create a new location
+   * Method untuk membuat lokasi baru (tidak dapat dilakukan melalui mobile app)
    */
-  static async create(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
+  static async create(req: Request, res: Response, next: NextFunction) {
     try {
+      // Ambil data lokasi baru dari request body
       const { name, latitude, longitude, startTime, endTime }: Location =
         req.body;
 
-      // Validate time format
+      // Validasi format waktu
       const startTimeDate = new Date(startTime);
       const endTimeDate = new Date(endTime);
       if (isNaN(startTimeDate.getTime()) || isNaN(endTimeDate.getTime())) {
+        // Jika format waktu tidak valid, kirimkan pesan error
         res.status(400).json({
           success: false,
-          error: "Invalid time format. Please use ISO 8601 format.",
+          error:
+            "Format waktu tidak valid. Gunakan format YYYY-MM-DDTHH:mm:ssZ.",
         });
         return;
       }
 
-      // Validate that start time is before end time
+      // Pastikan bahwa waktu mulai tidak lebih akhir dari waktu selesai
+      // (misalnya, waktu mulai jam 10 pagi dan waktu selesai jam 8 pagi)
       if (startTimeDate >= endTimeDate) {
+        // Jika waktu mulai lebih akhir dari waktu selesai, kirimkan pesan error
         res.status(400).json({
           success: false,
           error: "Start time must be before end time.",
@@ -35,9 +36,10 @@ export default class AppointmentService {
         return;
       }
 
-      // Validate that the start time is in the future
+      // Pastikan bahwa waktu mulai tidak lebih awal dari waktu sekarang
       const now = new Date();
       if (startTimeDate <= now) {
+        // Jika waktu mulai lebih awal dari waktu sekarang, kirimkan pesan error
         res.status(400).json({
           success: false,
           error: "Start time must be in the future.",
@@ -45,7 +47,7 @@ export default class AppointmentService {
         return;
       }
 
-      // Create the location
+      // Simpan lokasi baru ke database
       const newLocation = await prisma.location.create({
         data: {
           name,
@@ -56,60 +58,60 @@ export default class AppointmentService {
         },
       });
 
+      // Jika berhasil, kirimkan response berisi data lokasi yang baru ditambahkan
       res.status(201).json({
         success: true,
         data: newLocation,
       });
     } catch (error) {
+      // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
       next(error);
     }
   }
 
   /**
-   * Get all locations
+   * Method untuk mendapatkan semua lokasi
    */
-  static async getAll(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
+  static async getAll(req: Request, res: Response, next: NextFunction) {
     try {
       const locations = await prisma.location.findMany({
-        where: { deletedAt: null },
+        where: {
+          deletedAt: null, // Pastikan lokasi tidak dihapus
+          endTime: { gte: new Date() }, // Pastikan acara di lokasi tsb belum berakhir
+        },
       });
 
+      // Kirimkan semua lokasi sebagai response ke aplikasi mobile
       res.status(200).json({
         success: true,
         data: locations,
       });
     } catch (error) {
+      // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
       next(error);
     }
   }
 
   /**
-   * Get a location by ID
+   * Method untuk mendapatkan lokasi detail berdasarkan ID
    */
-  static async getById(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
+  static async getById(req: Request, res: Response, next: NextFunction) {
     try {
+      // Ambil ID lokasi dari parameter URL
       const locationId = parseInt(req.params.id);
 
-      // Get the location by ID
+      // Ambil lokasi dari database
       const location = await prisma.location.findUnique({
         where: { id: locationId },
       });
 
-      // Check if the location exists
+      // Jika tidak ada lokasi dengan ID tersebut, kirimkan pesan error
       if (!location) {
         res.status(404).json({ success: false, error: "Location not found" });
         return;
       }
 
-      // Ensure the location is not deleted
+      // Jika lokasi sudah dihapus, kirimkan pesan error
       if (location.deletedAt) {
         res.status(410).json({
           success: false,
@@ -118,26 +120,35 @@ export default class AppointmentService {
         return;
       }
 
+      // Jika acara di lokasi sudah berakhir, kirimkan pesan error
+      if (location.endTime < new Date()) {
+        res.status(410).json({
+          success: false,
+          error: "Event at this location has ended",
+        });
+        return;
+      }
+
+      // Jika tidak ada masalah, kirimkan lokasi sebagai response ke aplikasi mobile
       res.status(200).json({
         success: true,
         data: location,
       });
     } catch (error) {
+      // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
       next(error);
     }
   }
 
   /**
-   * Update a location
+   * Perbarui lokasi berdasarkan ID (tidak dapat dilakukan melalui mobile app)
    */
-  static async update(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
+  static async update(req: Request, res: Response, next: NextFunction) {
     try {
+      // Ambil ID lokasi dari parameter URL
       const locationId = parseInt(req.params.id);
 
+      // Ubah data lokasi di database
       const updatedLocation = await prisma.location.update({
         where: { id: locationId },
         data: {
@@ -150,33 +161,36 @@ export default class AppointmentService {
         },
       });
 
+      // Jika berhasil, kirimkan lokasi yang sudah di-update sebagai response
       res.status(200).json({
         success: true,
         data: updatedLocation,
       });
     } catch (error) {
+      // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
       next(error);
     }
   }
 
   /**
-   * Delete a location
+   * Method untuk menghapus lokasi berdasarkan ID (tidak dapat dilakukan melalui mobile app)
    */
-  static async delete(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ): Promise<void> {
+  static async delete(req: Request, res: Response, next: NextFunction) {
     try {
+      // Ambil ID lokasi dari parameter URL
       const locationId = parseInt(req.params.id);
 
+      // Hapus lokasi dari database dengan mengubah deletedAt menjadi waktu sekarang
+      // (data masih ada di database, tapi tidak akan dikirim ke mobile app)
       await prisma.location.update({
         where: { id: locationId },
         data: { deletedAt: new Date() },
       });
 
+      // Jika tidak ada masalah, kirimkan response sukses
       res.status(204).send();
     } catch (error) {
+      // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
       next(error);
     }
   }
