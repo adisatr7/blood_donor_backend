@@ -3,94 +3,83 @@ import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import prisma from "../prisma/prismaClient";
 
-// Secret keys taken from environment variables
+// Secret keys diambil dari file `.env`
 const JWT_SECRET = process.env.JWT_SECRET ?? "";
 const JWT_EXPIRE = process.env.JWT_EXPIRE ?? "1h";
 
-/**
- * Service for handling authentication operations.
- */
 export default class AuthService {
   /**
-   * Login function
+   * Method untuk login user.
    */
-  static async login(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
-    // Get login information
-    const { nik, password } = req.body;
-
+  static async login(req: Request, res: Response, next: NextFunction) {
     try {
-      // Check if the user exists and the password is correct
+      // Ambil data login dari request body
+      const { nik, password } = req.body;
+
+      // Cek apakah ada user dengan NIK yang diberikan
       const user = await prisma.user.findUnique({ where: { nik } });
 
-      // If user not found
+      // Jika tidak ada, kirim pesan error melalui response ke mobile app
       if (!user) {
-        res.status(404).json({ success: false, error: "User not found" });
+        res.status(404).json({ success: false, error: "NIK Anda belum terdaftar" });
         return;
       }
 
-      // Check for password
+      // Jika ada user dengan NIK tersebut, cek password-nya
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
-      // If password is invalid
+      // Jika password salah, kirim pesan error melalui response ke mobile app
       if (!isPasswordValid) {
-        res.status(401).json({ success: false, error: "Invalid password" });
+        res.status(401).json({ success: false, error: "Kata sandi yang Anda masukkan salah" });
         return;
       }
 
-      // Generate JWT token
+      // Jika password benar, buat token JWT agar dapat mengakses route yang wajib login
       const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
-        expiresIn: JWT_EXPIRE as any, // To supress TypeScript error
+        expiresIn: JWT_EXPIRE as any, // `as any` digunakan untuk menghindari warning pada TypeScript
       });
 
-      // Return the generated tokens
+      // Kirimkan token JWT ke mobile app
       res.json({ success: true, token });
     } catch (error) {
+      // Jika terjadi error, kirimkan pesan error melalui response ke mobile app
       next(error);
     }
   }
 
   /**
-   * Register function
+   * Method untuk registrasi user baru.
    */
-  static async signup(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<void> {
+  static async signup(req: Request, res: Response, next: NextFunction) {
     try {
-      // Get registration information
+      // Ambil data registrasi dari request body
       const { nik, password, ...userData } = req.body;
 
-      // Check if the user already exists
+      // Cek apakah ada user dengan NIK yang diberikan
       const existingUser = await prisma.user.findUnique({ where: { nik } });
 
-      // If user already exists, return an error
+      // Jika NIK sudah terdaftar, kirim pesan error melalui response ke mobile app
       if (existingUser) {
-        res.status(409).json({ success: false, error: "User already exists" });
+        res.status(409).json({ success: false, error: "NIK sudah terdaftar" });
         return;
       }
 
-      // Hash the password
+      // Enkripsi password menggunakan bcrypt agar tidak mudah dibaca dan lebih aman
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Create a new user in the database
+      // Simpan data user baru ke database
       const newUser = await prisma.user.create({
         data: {
           nik,
-          password: hashedPassword,
-          createdAt: new Date(),
-          updatedAt: null,
-          ...userData,
+          password: hashedPassword, // Password yang disimpan adalah password yang sudah dienkripsi
+          ...userData, // Simpan data user lainnya (tidak perlu diketik satu-satu di kode)
         },
       });
 
+      // Jika berhasil, kirimkan ID user baru sebagai response ke mobile app
       res.status(201).json({ success: true, userId: newUser.id });
     } catch (error) {
-      console.error(error);
+      // Jika terjadi error, kirimkan pesan error melalui response ke mobile app
       next(error);
     }
   }

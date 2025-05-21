@@ -4,8 +4,8 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = process.env.JWT_SECRET ?? "";
 
 /**
- * Middleware to protect routes by verifying JWT tokens.
- * If the token is invalid or expired, returns 403 Unauthorized.
+ * Middleware untuk melindungi route yang memerlukan login.
+ * Jika token JWT tidak valid atau tidak ada, akses akan ditolak.
  */
 export default function protectedRoute(
   req: Request,
@@ -13,10 +13,10 @@ export default function protectedRoute(
   next: NextFunction,
 ) {
   try {
-    // Get the token from the Authorization header
+    // Ambil token dari header request
     const authHeader = req.headers.authorization;
 
-    // Prevent unauthorized access if the token is not provided
+    // Jika token tidak ada, kirimkan response error `401 Unauthorized`
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       res
         .status(401)
@@ -24,26 +24,25 @@ export default function protectedRoute(
       return;
     }
 
-    // Extract the access token
+    // Jika token ada, lakukan verifikasi
     const token = authHeader.split(" ")[1];
-
-    // Verify the access token
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: number };
 
-    // Attach the user ID to the request object
+    // Tempelkan ID user ke dalam request untuk memberikan ijin akses ke route yang memerlukan login
     req.user = { id: decoded.userId };
 
-    // Proceed to the next middleware or route handler
+    // Lanjut ke middleware atau route berikutnya
     next();
   } catch (error) {
+    // Jika token tidak valid atau sudah kadaluarsa, kirimkan response error `403 Forbidden`
     res.status(403).json({
       success: false,
-      error: "Forbidden: Invalid or expired token",
+      error: "Gagal: Token tidak valid atau sudah kadaluarsa",
     });
   }
 }
 
-// Extend the Request interface to include the user property
+// Deklarasi tipe data untuk mencegah error/warning pada TypeScript (bisa diabaikan)
 declare global {
   namespace Express {
     interface Request {

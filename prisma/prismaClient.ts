@@ -1,7 +1,7 @@
 import { PrismaClient } from "./client";
 
-// Initialize Prisma Client to connect to the database
+// Inisiasi PrismaClient sebagai singleton
 const prisma = new PrismaClient();
 
-// Export it for use in other parts of the application
+// Export PrismaClient untuk digunakan di seluruh aplikasi
 export default prisma;

@@ -1,27 +1,31 @@
 import type { NextFunction, Request, Response } from "express";
 
 /**
- * Middleware to ensure the request body is not empty and optionally validate required fields.
- * @param requiredFields - An array of required field names to validate (optional). If not provided,
- *                         only checks if the body is not empty.
+ * Middleware yang memastikan request body tidak kosong dan secara opsional memvalidasi
+ * field yang diperlukan.
+ *
+ * @param requiredFields - Array berisi nama field yang wajib divalidasi (opsional).
+ *                         Jika tidak diberikan, hanya memeriksa apakah body
+ *                         tidak kosong.
  */
 export default function validateRequestBody(
-  requiredFields: string[] = [],
+  requiredFields: string[] = []
 ): any {
   return (req: Request, res: Response, next: NextFunction) => {
-    // Check if the request body exists and is not an empty object
+    // Pastikan request body tidak kosong
     if (!req.body || Object.keys(req.body).length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Request body is required and cannot be empty",
+        message: "Request body tidak boleh kosong",
       });
     }
 
-    // Validate required fields, if any
+    // Validasi field yang diperlukan (jika ada)
     const missingFields = requiredFields.filter(
-      (field) => !(field in req.body),
+      (field) => !(field in req.body)
     );
 
+    // Jika ada field wajib yang kosong, kirimkan response error
     if (missingFields.length > 0) {
       return res.status(400).json({
         success: false,
@@ -29,6 +33,6 @@ export default function validateRequestBody(
       });
     }
 
-    next();
+    next(); // Jika semua validasi lolos, lanjutkan ke middleware/route berikutnya
   };
 }
