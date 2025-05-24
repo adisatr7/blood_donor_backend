@@ -1,9 +1,20 @@
+import fs from "fs";
 import multer from "multer";
+import path from "path";
 
+// 💡 Tentukan folder untuk menyimpan file yang diupload user
+const uploadDir = path.join(__dirname, "../public/uploads");
+
+// 🗂️ Jika folder belum ada, buat folder baru
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// ⚙️ Konfigurasi multer untuk menyimpan file yang diupload ke folder `public/uploads`
 const storage = multer.diskStorage({
-  destination: "public/uploads",
+  destination: uploadDir,
   filename: (req, file, cb) => {
-    cb(null, Date.now().toString());
+    cb(null, Date.now().toString()); // 👈 Nama file yang di-upload
   },
 });
 
