@@ -38,3 +38,8 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Prisma generated files
 prisma/client
+
+# User uploaded files
+public/uploads/*.jpg
+public/uploads/*.jpeg
+public/uploads/*.png

@@ -21,7 +21,9 @@ export default class AuthService {
 
       // Jika tidak ada, kirim pesan error melalui response ke mobile app
       if (!user) {
-        res.status(404).json({ success: false, error: "NIK Anda belum terdaftar" });
+        res
+          .status(404)
+          .json({ success: false, error: "NIK Anda belum terdaftar" });
         return;
       }
 
@@ -30,7 +32,10 @@ export default class AuthService {
 
       // Jika password salah, kirim pesan error melalui response ke mobile app
       if (!isPasswordValid) {
-        res.status(401).json({ success: false, error: "Kata sandi yang Anda masukkan salah" });
+        res.status(401).json({
+          success: false,
+          error: "Kata sandi yang Anda masukkan salah",
+        });
         return;
       }
 
@@ -67,12 +72,34 @@ export default class AuthService {
       // Enkripsi password menggunakan bcrypt agar tidak mudah dibaca dan lebih aman
       const hashedPassword = await bcrypt.hash(password, 10);
 
+      // Jika ada foto profil yang diupload, simpan di folder `public/uploads`
+      let profilePictureUrl;
+      if (req.file) {
+        profilePictureUrl = `/public/uploads/${req.file.filename}`;
+      }
+
       // Simpan data user baru ke database
       const newUser = await prisma.user.create({
         data: {
           nik,
+          name: userData.name,
           password: hashedPassword, // Password yang disimpan adalah password yang sudah dienkripsi
-          ...userData, // Simpan data user lainnya (tidak perlu diketik satu-satu di kode)
+          profilePicture: profilePictureUrl, // Simpan foto profil (jika ada)
+          birthPlace: userData.birthPlace,
+          birthDate: new Date(userData.birthDate), // Ubah format tanggal menjadi Date
+          gender: userData.gender,
+          job: userData.job,
+          weightKg: userData.weightKg ? parseFloat(userData.weightKg) : 0.0,
+          heightCm: userData.heightCm ? parseFloat(userData.heightCm) : 0.0,
+          bloodType: userData.bloodType,
+          rhesus: userData.rhesus,
+          address: userData.address,
+          noRt: userData.noRt ? parseInt(userData.noRt) : 0,
+          noRw: userData.noRw ? parseInt(userData.noRw) : 0,
+          village: userData.village,
+          district: userData.district,
+          city: userData.city,
+          province: userData.province,
         },
       });
 
