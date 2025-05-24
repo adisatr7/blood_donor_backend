@@ -39,7 +39,12 @@ export default class UserService {
 
       // Jika tidak ada user dengan ID tersebut, kirimkan pesan error
       if (!user) {
-        res.status(404).json({ success: false, error: "ID user tidak ditemukan, harap login kembali" });
+        res
+          .status(404)
+          .json({
+            success: false,
+            error: "ID user tidak ditemukan, harap login kembali",
+          });
         return;
       }
 
@@ -64,7 +69,7 @@ export default class UserService {
         // Jika ada password di request body, kirimkan pesan error
         res.status(400).json({
           success: false,
-          error: "Password updates are not allowed in this operation.",
+          error: "Anda tidak dapat mengubah password melalui endpoint ini",
         });
         return;
       }
@@ -75,7 +80,6 @@ export default class UserService {
         data: {
           nik: req.body.nik,
           name: req.body.name,
-          profilePicture: req.body.profilePicture,
           birthPlace: req.body.birthPlace,
           birthDate: req.body.birthDate,
           gender: req.body.gender,
@@ -103,6 +107,39 @@ export default class UserService {
     }
   }
 
+  static async updateProfilePicture(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      // Ambil ID user yang sedang login
+      const userId = req.user!.id;
+
+      // Jika ada file foto profil yang diupload, simpan di folder `public/uploads`
+      let profilePictureUrl: string | null = null;
+      if (req.file) {
+        // Simpan URL foto profil yang diupload
+        profilePictureUrl = `/public/uploads/${req.file.filename}`;
+      }
+
+      // Update foto profil di database
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          profilePicture: profilePictureUrl,
+          updatedAt: new Date(),
+        },
+      });
+
+      // Jika berhasil, kirimkan data user yang sudah di-update sebagai response
+      res.status(200).json({ success: true, data: updatedUser });
+    } catch (error) {
+      // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
+      next(error);
+    }
+  }
+
   /**
    * Edit user password
    */
@@ -118,7 +155,7 @@ export default class UserService {
       if (oldPassword === newPassword) {
         res.status(400).json({
           success: false,
-          error: "New password must be different from the old password",
+          error: "Kata sandi lama dan baru tidak boleh sama",
         });
         return;
       }
@@ -144,11 +181,12 @@ export default class UserService {
       if (!isPasswordValid) {
         res
           .status(401)
-          .json({ success: false, error: "Password is incorrect" });
+          .json({ success: false, error: "Kata sandi lama salah" });
         return;
       }
 
       // Pastikan password baru dan konfirmasi password baru sama
+      // Dapat diabaikan karena sudah ada validasi di Frontend
       if (newPassword !== confirmNewPassword) {
         // Jika password baru dan konfirmasi tidak sama, kirimkan pesan error
         res.status(400).json({
@@ -159,6 +197,7 @@ export default class UserService {
       }
 
       // Pastikan password baru memiliki panjang minimal 8 karakter
+      // Juga ada validasi di Frontend
       if (newPassword.length < 8) {
         // Jika password baru kurang dari 8 karakter, kirimkan pesan error
         res.status(400).json({
