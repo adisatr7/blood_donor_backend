@@ -13,6 +13,7 @@ const app = express(); // Inisialisasi server Backend
 app.use(morgan("combined")); // Untuk mencatat semua aktivitas request ke console
 app.use(express.json()); // Agar server bisa menerima request dengan format JSON
 app.use(cors()); // Agar server bisa diakses dari aplikasi mobile (CORS)
+app.use("/public", express.static("public")); // Untuk menghandle upload foto
 
 // 🔗 Import semua controllers ke server Backend agar bisa digunakan
 app.use("/api/v1/", routes);
