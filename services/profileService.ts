@@ -39,12 +39,10 @@ export default class UserService {
 
       // Jika tidak ada user dengan ID tersebut, kirimkan pesan error
       if (!user) {
-        res
-          .status(404)
-          .json({
-            success: false,
-            error: "ID user tidak ditemukan, harap login kembali",
-          });
+        res.status(404).json({
+          success: false,
+          error: "ID user tidak ditemukan, harap login kembali",
+        });
         return;
       }
 
@@ -95,7 +93,6 @@ export default class UserService {
           district: req.body.district,
           city: req.body.city,
           province: req.body.province,
-          updatedAt: new Date(),
         },
       });
 
@@ -126,10 +123,7 @@ export default class UserService {
       // Update foto profil di database
       const updatedUser = await prisma.user.update({
         where: { id: userId },
-        data: {
-          profilePicture: profilePictureUrl,
-          updatedAt: new Date(),
-        },
+        data: { profilePicture: profilePictureUrl },
       });
 
       // Jika berhasil, kirimkan data user yang sudah di-update sebagai response
@@ -213,10 +207,7 @@ export default class UserService {
       // Simpan password baru yang sudah dienkripsi ke database
       await prisma.user.update({
         where: { id: userId },
-        data: {
-          password: hashedPassword,
-          updatedAt: new Date(),
-        },
+        data: { password: hashedPassword },
       });
 
       // Jika berhasil, kirimkan pesan sukses
