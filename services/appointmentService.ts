@@ -9,20 +9,10 @@ export default class AppointmentService {
   static async create(req: Request, res: Response, next: NextFunction) {
     try {
       // Ambil data appointment baru dari request body
-      const { locationId, status = "SCHEDULED", time }: Appointment = req.body;
+      const { locationId, status = "SCHEDULED" }: Appointment = req.body;
 
       // Ambil ID user yang sedang login
       const userId = req.user!.id;
-
-      // Pastikan tanggal appointment tidak di masa lalu
-      const currentTime = new Date();
-      if (new Date(time) < currentTime) {
-        res.status(400).json({
-          success: false,
-          message: "Appointment time cannot be in the past",
-        });
-        return;
-      }
 
       // Buat appointment baru di database
       const newAppointment = await prisma.appointment.create({
@@ -30,7 +20,6 @@ export default class AppointmentService {
           locationId,
           userId,
           status,
-          time,
         },
       });
 
@@ -53,7 +42,7 @@ export default class AppointmentService {
       // Ambil semua appointment milik user yang sedang login
       const appointments = await prisma.appointment.findMany({
         where: { userId },
-        orderBy: { time: "desc" },
+        orderBy: { Location: { startTime: "desc" } },
       });
 
       // Jika ada, kirimkan semua appointment sebagai response ke aplikasi mobile
@@ -119,7 +108,7 @@ export default class AppointmentService {
         where: { id: appointmentId, userId },
         data: {
           status: req.body.status,
-          time: req.body.time,
+          updatedAt: new Date(),
         },
       });
 

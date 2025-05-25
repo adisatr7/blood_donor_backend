@@ -81,7 +81,6 @@ model Appointment {
   id         Int               @id @default(autoincrement())
   userId     Int               @map("user_id")
   locationId Int               @map("location_id")
-  time       DateTime
   status     AppointmentStatus
   createdAt  DateTime          @default(now()) @map("created_at")
   updatedAt  DateTime?         @updatedAt @map("updated_at")
@@ -92,7 +91,6 @@ model Appointment {
 
   @@index([userId])
   @@index([locationId])
-  @@index([time])
   @@map("appointments")
 }
 
