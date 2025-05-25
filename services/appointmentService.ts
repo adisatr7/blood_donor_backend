@@ -106,10 +106,7 @@ export default class AppointmentService {
       // Ubah data appointment sesuai request (hanya bisa ubah status dan/atau waktu)
       const updatedAppointment = await prisma.appointment.update({
         where: { id: appointmentId, userId },
-        data: {
-          status: req.body.status,
-          updatedAt: new Date(),
-        },
+        data: { status: req.body.status },
       });
 
       // Jika berhasil, kirimkan appointment yang sudah di-update sebagai response

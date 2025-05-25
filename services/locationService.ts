@@ -157,7 +157,6 @@ export default class AppointmentService {
           longitude: req.body.longitude,
           startTime: req.body.startTime,
           endTime: req.body.endTime,
-          updatedAt: new Date(),
         },
       });
 
