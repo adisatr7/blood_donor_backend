@@ -42,6 +42,9 @@ export default class AppointmentService {
       // Ambil semua appointment milik user yang sedang login
       const appointments = await prisma.appointment.findMany({
         where: { userId },
+        include: {
+          Location: true,
+        },
         orderBy: { Location: { startTime: "desc" } },
       });
 
