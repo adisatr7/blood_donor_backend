@@ -40,9 +40,7 @@ export default class AuthService {
       }
 
       // Jika password benar, buat token JWT agar dapat mengakses route yang wajib login
-      const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
-        expiresIn: JWT_EXPIRE as any, // `as any` digunakan untuk menghindari warning pada TypeScript
-      });
+      const token = AuthService.generateToken(user.id);
 
       // Kirimkan token JWT ke mobile app
       res.json({ success: true, token });
@@ -101,13 +99,27 @@ export default class AuthService {
           city: userData.city,
           province: userData.province,
         },
+        select: {
+          id: true, // Hanya ambil ID user baru yang dibuat
+        },
       });
 
+      const token = AuthService.generateToken(newUser.id);
+
       // Jika berhasil, kirimkan ID user baru sebagai response ke mobile app
-      res.status(201).json({ success: true, userId: newUser.id });
+      res.status(201).json({ success: true, userId: newUser.id, token });
     } catch (error) {
       // Jika terjadi error, kirimkan pesan error melalui response ke mobile app
       next(error);
     }
+  }
+
+  /**
+   * Method internal untuk membuat token JWT baru.
+   */
+  private static generateToken(userId: number) {
+    return jwt.sign({ userId }, JWT_SECRET, {
+      expiresIn: JWT_EXPIRE as any, // `as any` digunakan untuk menghindari warning pada TypeScript
+    });
   }
 }
