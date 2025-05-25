@@ -19,6 +19,7 @@ services:
         echo 'Waiting for the database...';
         sleep 2;
       done;
+      rm package-lock.json || true;
       bun app.ts
       "
 

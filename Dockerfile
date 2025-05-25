@@ -1,5 +1,8 @@
-# Use the Bun image as the base image
-FROM oven/bun:latest
+# Use the Node image as the base image because Prisma by default uses `npm`
+FROM node:slim
+
+# Install Bun for better performance
+RUN npm install -g bun@latest
 
 # Set the working directory in the container
 WORKDIR /app
@@ -18,6 +21,3 @@ RUN bunx prisma generate
 
 # Expose the port on which the API will listen
 EXPOSE 3000
-
-# Run the server when the container launches
-CMD ["bun", "app.ts"]
