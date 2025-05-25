@@ -2,7 +2,7 @@ import express from "express";
 import validateRequestBody from "../middlewares/validateRequestBody";
 import AppointmentService from "../services/appointmentService";
 
-const createParams = ["locationId", "time"]; // Request body yang dibutuhkan untuk membuat appointment
+const createParams = ["locationId"]; // Request body yang dibutuhkan untuk membuat appointment
 
 const router = express.Router(); // 🌐 http://localhost:3000/api/v1/appointments
 
