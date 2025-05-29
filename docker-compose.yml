@@ -24,20 +24,36 @@ services:
       "
 
   db:
-    image: mariadb:latest
-    container_name: mariadb
+    image: postgres:16
+    container_name: postgres
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: blood_donor
-      MYSQL_USER: user
-      MYSQL_PASSWORD: userpassword
+      POSTGRES_DB: blood_donor
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: userpassword
     ports:
-      - "3307:3306"
+      - "5432:5432"
     volumes:
-      - blood_donor_database:/var/lib/mysql
+      - blood_donor_database:/var/lib/postgresql/data
     networks:
       - blood_donor_network
+
+  # db:
+  #   image: mariadb:latest
+  #   platform: linux/amd64
+  #   container_name: mariadb
+  #   restart: always
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: password
+  #     MYSQL_DATABASE: blood_donor
+  #     MYSQL_USER: user
+  #     MYSQL_PASSWORD: userpassword
+  #   ports:
+  #     - "3307:3306"
+  #   volumes:
+  #     - blood_donor_database:/var/lib/mysql
+  #   networks:
+  #     - blood_donor_network
 
 volumes:
   blood_donor_database:
