@@ -29,7 +29,7 @@ export default function validateRequestBody(
     if (missingFields.length > 0) {
       return res.status(400).json({
         success: false,
-        message: `Missing required fields: ${missingFields.join(", ")}`,
+        message: `Request body wajib berisi: ${missingFields.join(", ")}`,
       });
     }
 
