@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import type { NextFunction, Request, Response } from "express";
 import prisma from "../prisma/prismaClient";
 
-export default class UserService {
+export default class ProfileService {
   /**
    * Ambil data user yang sedang login
    */
