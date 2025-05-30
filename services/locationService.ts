@@ -31,7 +31,7 @@ export default class AppointmentService {
         // Jika waktu mulai lebih akhir dari waktu selesai, kirimkan pesan error
         res.status(400).json({
           success: false,
-          error: "Start time must be before end time.",
+          error: "`startTime` harus sebelum `endTime`.",
         });
         return;
       }
@@ -107,7 +107,7 @@ export default class AppointmentService {
 
       // Jika tidak ada lokasi dengan ID tersebut, kirimkan pesan error
       if (!location) {
-        res.status(404).json({ success: false, error: "Location not found" });
+        res.status(404).json({ success: false, error: "Lokasi tidak ditemukan" });
         return;
       }
 
@@ -115,7 +115,7 @@ export default class AppointmentService {
       if (location.deletedAt) {
         res.status(410).json({
           success: false,
-          error: "Location has been deleted",
+          error: "Lokasi telah dihapus",
         });
         return;
       }
@@ -124,7 +124,7 @@ export default class AppointmentService {
       if (location.endTime < new Date()) {
         res.status(410).json({
           success: false,
-          error: "Event at this location has ended",
+          error: "Acara donor darah di lokasi ini sudah berakhir",
         });
         return;
       }
