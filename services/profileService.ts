@@ -185,7 +185,7 @@ export default class ProfileService {
         // Jika password baru dan konfirmasi tidak sama, kirimkan pesan error
         res.status(400).json({
           success: false,
-          error: "New password and confirmation do not match",
+          error: "Kata sandi baru dan konfirmasi harus sama",
         });
         return;
       }
@@ -196,7 +196,7 @@ export default class ProfileService {
         // Jika password baru kurang dari 8 karakter, kirimkan pesan error
         res.status(400).json({
           success: false,
-          error: "New password must be at least 8 characters long",
+          error: "Kata sandi baru harus memiliki minimal 8 karakter",
         });
         return;
       }
@@ -211,7 +211,7 @@ export default class ProfileService {
       });
 
       // Jika berhasil, kirimkan pesan sukses
-      res.status(200).json({ success: true, message: "Password updated" });
+      res.status(200).json({ success: true, message: "Kata sandi berhasil diubah" });
     } catch (error) {
       // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
       next(error);
