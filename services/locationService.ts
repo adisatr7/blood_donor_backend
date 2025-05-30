@@ -36,17 +36,6 @@ export default class AppointmentService {
         return;
       }
 
-      // Pastikan bahwa waktu mulai tidak lebih awal dari waktu sekarang
-      const now = new Date();
-      if (startTimeDate <= now) {
-        // Jika waktu mulai lebih awal dari waktu sekarang, kirimkan pesan error
-        res.status(400).json({
-          success: false,
-          error: "Start time must be in the future.",
-        });
-        return;
-      }
-
       // Simpan lokasi baru ke database
       const newLocation = await prisma.location.create({
         data: {
