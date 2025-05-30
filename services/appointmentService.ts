@@ -4,7 +4,7 @@ import prisma from "../prisma/prismaClient";
 
 export default class AppointmentService {
   /**
-   * Create a new appointment
+   * Buat appointment (sesi kunjungan) baru
    */
   static async create(req: Request, res: Response, next: NextFunction) {
     try {
@@ -32,7 +32,7 @@ export default class AppointmentService {
   }
 
   /**
-   * Get all appointments for a user
+   * Ambil semua appointment milik user yang sedang login
    */
   static async getAll(req: Request, res: Response, next: NextFunction) {
     try {
@@ -60,7 +60,7 @@ export default class AppointmentService {
   }
 
   /**
-   * Get a specific appointment by ID
+   * Ambil appointment detail berdasarkan ID appointment
    */
   static async getById(req: Request, res: Response, next: NextFunction) {
     try {
@@ -98,7 +98,8 @@ export default class AppointmentService {
   }
 
   /**
-   * Update an appointment
+   * Update appointment berdasarkan ID appointment
+   * Untuk sekarang hanya bisa update status appointment
    */
   static async update(req: Request, res: Response, next: NextFunction) {
     try {
