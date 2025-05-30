@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import type { Location } from "../prisma/client";
 import prisma from "../prisma/prismaClient";
 
-export default class AppointmentService {
+export default class LocationService {
   /**
    * Method untuk membuat lokasi baru (tidak dapat dilakukan melalui mobile app)
    */
