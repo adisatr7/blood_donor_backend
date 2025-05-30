@@ -20,7 +20,7 @@ export default function protectedRoute(
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       res
         .status(401)
-        .json({ success: false, error: "Unauthorized: No token provided" });
+        .json({ success: false, error: "Permintaan Ditolak: Anda tidak memiliki ijin akses" });
       return;
     }
 
