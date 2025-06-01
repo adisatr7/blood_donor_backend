@@ -7,6 +7,8 @@ const createParams = ["name", "latitude", "longitude", "startTime", "endTime"];
 
 const router = express.Router(); // 🌐 http://localhost:3000/api/v1/locations
 
+router.get("/search", LocationService.search); // Cari lokasi berdasarkan nama
+
 router.get("/:id", LocationService.getById); // Ambil 1 lokasi detail berdasarkan id
 router.patch("/:id", validateRequestBody(), LocationService.update); // Update lokasi berdasarkan id
 router.delete("/:id", LocationService.delete); // Hapus lokasi berdasarkan id

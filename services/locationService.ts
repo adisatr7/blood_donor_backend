@@ -96,7 +96,9 @@ export default class LocationService {
 
       // Jika tidak ada lokasi dengan ID tersebut, kirimkan pesan error
       if (!location) {
-        res.status(404).json({ success: false, error: "Lokasi tidak ditemukan" });
+        res
+          .status(404)
+          .json({ success: false, error: "Lokasi tidak ditemukan" });
         return;
       }
 
@@ -122,6 +124,43 @@ export default class LocationService {
       res.status(200).json({
         success: true,
         data: location,
+      });
+    } catch (error) {
+      // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
+      next(error);
+    }
+  }
+
+  /**
+   * Method untuk mencari lokasi berdasarkan nama
+   */
+  static async search(req: Request, res: Response, next: NextFunction) {
+    try {
+      // Ambil query parameter 'name' dari URL
+      const name = req.query.name as string;
+
+      // Tolak pencarian jika tidak ada query parameter 'name'
+      if (!name) {
+        res.status(400).json({
+          success: false,
+          error: "Query parameter 'name' tidak boleh kosong",
+        });
+        return;
+      }
+
+      // Cari lokasi berdasarkan nama yang mengandung query parameter
+      const locations = await prisma.location.findMany({
+        where: {
+          name: { contains: name }, // Pencarian tidak case-sensitive
+          deletedAt: null, // Pastikan lokasi tidak dihapus
+          endTime: { gte: new Date() }, // Pastikan acara di lokasi tsb belum berakhir
+        },
+      });
+
+      // Kirimkan hasil pencarian sebagai response ke aplikasi mobile
+      res.status(200).json({
+        success: true,
+        data: locations,
       });
     } catch (error) {
       // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
