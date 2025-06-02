@@ -138,7 +138,18 @@ export default class AppointmentService {
       const userId = req.user!.id;
       const appointmentId = parseInt(req.params.id);
 
-      // Ubah data appointment sesuai request (hanya bisa ubah status dan/atau waktu)
+      // Pastikan status yang dimasukkan valid
+      const validStatuses = ["SCHEDULED", "ATTENDED", "MISSED"];
+      if (!validStatuses.includes(req.body.status)) {
+        // Jika status tidak valid, kirimkan response error 400
+        res.status(400).json({
+          success: false,
+          message: "Status appointment tidak valid. Pilih satu dari: " + validStatuses.join(", "),
+        });
+        return;
+      }
+
+      // Ubah data appointment sesuai request
       const updatedAppointment = await prisma.appointment.update({
         where: { id: appointmentId, userId },
         data: { status: req.body.status },
