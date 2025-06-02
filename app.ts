@@ -5,6 +5,8 @@ import morgan from "morgan";
 import errorHandler from "./middlewares/errorHandler";
 import routes from "./routes/v1/index";
 
+import "./workers/googleSheetWorker"; // Walau hanya di-import, worker ini akan berjalan otomatis
+
 dotenv.config(); // Ambil konfigurasi dari file `.env`
 
 const app = express(); // Inisialisasi server Backend
