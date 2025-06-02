@@ -70,6 +70,15 @@ export default class LocationService {
         },
       });
 
+      // Jika tidak ada lokasi yang buka
+      if (locations.length === 0) {
+        res.status(404).json({
+          success: false,
+          error: "Tidak ada lokasi donor darah yang tersedia saat ini.",
+        });
+        return;
+      }
+
       // Kirimkan semua lokasi sebagai response ke aplikasi mobile
       res.status(200).json({
         success: true,
