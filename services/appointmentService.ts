@@ -1,5 +1,4 @@
 import type { NextFunction, Request, Response } from "express";
-import type { Appointment } from "../prisma/client";
 import prisma from "../prisma/prismaClient";
 
 export default class AppointmentService {
@@ -8,23 +7,55 @@ export default class AppointmentService {
    */
   static async create(req: Request, res: Response, next: NextFunction) {
     try {
-      // Ambil data appointment baru dari request body
-      const { locationId, status = "SCHEDULED" }: Appointment = req.body;
+      // Ambil data dari request body
+      const {
+        locationId,
+        status = "SCHEDULED",
+        questionnaireSections = [],
+      } = req.body;
 
-      // Ambil ID user yang sedang login
+      // Ambil ID user yang sedang login dari token JWT
       const userId = req.user!.id;
 
-      // Buat appointment baru di database
-      const newAppointment = await prisma.appointment.create({
-        data: {
-          locationId,
-          userId,
-          status,
-        },
-      });
+      // Gunakan transaksi jika agar ada error, seluruh proses pembuatan dibatalkan
+      const result = await prisma.$transaction(async (trx) => {
+        // Buat appointment baru di database
+        const newAppointment = await trx.appointment.create({
+          data: {
+            locationId,
+            userId,
+            status,
+          },
+        });
 
-      // Kirimkan response dengan status 201 Created (sukses)
-      res.status(201).json(newAppointment);
+        // Proses jawaban kuesioner
+        if (Array.isArray(questionnaireSections) && questionnaireSections.length > 0) {
+          // Susun data agar sesuai dengan format di tabel database
+          const questionnaireData = questionnaireSections.flatMap(
+            (section: any) =>
+              (section.items || []).map((item: any) => ({
+                appointmentId: newAppointment.id,
+                number: item.itemNumber,
+                question: item.question,
+                answer: item.answer,
+              }))
+          );
+
+          // Simpan data kuesioner ke database
+          if (questionnaireData.length > 0) {
+            await trx.questionnaire.createMany({
+              data: questionnaireData,
+            });
+          }
+        }
+        return newAppointment;
+      }); // <- Akhir dari transaksi
+
+      // Jika transaksi berhasil, kirim response ke aplikasi mobile
+      res.status(201).json({
+        success: true,
+        data: result,
+      });
     } catch (error) {
       // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
       next(error);
