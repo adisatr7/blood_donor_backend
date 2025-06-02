@@ -4,8 +4,7 @@ import express from "express";
 import morgan from "morgan";
 import errorHandler from "./middlewares/errorHandler";
 import routes from "./routes/v1/index";
-
-import "./workers/googleSheetWorker"; // Walau hanya di-import, worker ini akan berjalan otomatis
+import GoogleSheetWorker from "./workers/googleSheetWorker";
 
 dotenv.config(); // Ambil konfigurasi dari file `.env`
 
@@ -16,6 +15,9 @@ app.use(morgan("combined")); // Untuk mencatat semua aktivitas request ke consol
 app.use(express.json()); // Agar server bisa menerima request dengan format JSON
 app.use(cors()); // Agar server bisa diakses dari aplikasi mobile (CORS)
 app.use("/public", express.static("public")); // Untuk menghandle upload foto
+
+// Jalankan worker untuk Google Sheets
+GoogleSheetWorker.start(); // Sinkronisasi data ke Google Sheets setiap 5 menit
 
 // 🔗 Import semua controllers ke server Backend agar bisa digunakan
 app.use("/api/v1/", routes);
