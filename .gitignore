@@ -43,3 +43,7 @@ prisma/client
 public/uploads/*.jpg
 public/uploads/*.jpeg
 public/uploads/*.png
+
+# Credentials
+credentials/*
+!credentials/.keep
