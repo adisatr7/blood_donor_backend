@@ -56,6 +56,7 @@ model User {
   updatedAt      DateTime?  @updatedAt @map("updated_at")
 
   Appointments Appointment[]
+  Conversations Conversation[]
 
   @@map("users")
 }
@@ -107,4 +108,37 @@ model Questionnaire {
 
   @@index([appointmentId])
   @@map("questionnaires")
+}
+
+model Conversation {
+  id        Int       @id @default(autoincrement())
+  userId    Int       @map("user_id")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  User User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  Messages Message[]
+
+  @@index([userId])
+  @@map("conversations")
+}
+
+enum Sender {
+  USER
+  MODEL // AI
+}
+
+model Message {
+  id             Int       @id @default(autoincrement())
+  conversationId Int       @map("conversation_id")
+  sender         Sender
+  message        String    @db.Text
+  createdAt      DateTime  @default(now()) @map("created_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  Conversation Conversation @relation(fields: [conversationId], references: [id])
+
+  @@index([conversationId])
+  @@map("messages")
 }

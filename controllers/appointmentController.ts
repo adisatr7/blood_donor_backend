@@ -1,6 +1,6 @@
-import express from "express";
-import validateRequestBody from "../middlewares/validateRequestBody";
-import AppointmentService from "../services/appointmentService";
+import express from "express"
+import validateRequestBody from "../middlewares/validateRequestBody"
+import AppointmentService from "../services/appointmentService"
 
 // Request body yang dibutuhkan untuk membuat dan mengubah data appointment
 const createParams = ["locationId", "questionnaireSections"];

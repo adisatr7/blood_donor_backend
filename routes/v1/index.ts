@@ -1,4 +1,5 @@
 import express from "express";
+import AiController from "../../controllers/aiController";
 import AppointmentController from "../../controllers/appointmentController";
 import AuthController from "../../controllers/authController";
 import HealthController from "../../controllers/healthController";
@@ -15,5 +16,6 @@ router.use("/auth", AuthController); // Login dan daftar akun
 router.use("/profile", protectedRoute, ProfileController); // Lihat dan ubah profil  (🔒 Wajib login dulu)
 router.use("/locations", protectedRoute, LocationController); // Lihat dan ubah lokasi donor (🔒 Wajib login dulu)
 router.use("/appointments", protectedRoute, AppointmentController); // Lihat, buat, dan ubah appointment (🔒 Wajib login dulu)
+router.use("/ai", protectedRoute, AiController); // Chat dengan AI (🔒 Wajib login dulu)
 
 export default router;
