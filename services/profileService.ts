@@ -4,6 +4,34 @@ import prisma from "../prisma/prismaClient";
 
 export default class ProfileService {
   /**
+   * Filter user untuk digunakan di klausa `SELECT` untuk mengambil
+   * semua data user kecuali password. Ini digunakan agar kita tidak
+   * perlu menulis ulang apa saja yang ingin di-`SELECT` setiap kali
+   * mengambil data user.
+   */
+  static SELECT_ALL_EXCLUDING_PASSWORD = {
+    id: true,
+    nik: true,
+    name: true,
+    profilePicture: true,
+    birthPlace: true,
+    birthDate: true,
+    gender: true,
+    job: true,
+    weightKg: true,
+    heightCm: true,
+    bloodType: true,
+    rhesus: true,
+    address: true,
+    noRt: true,
+    noRw: true,
+    village: true,
+    district: true,
+    city: true,
+    province: true,
+  };
+
+  /**
    * Ambil data user yang sedang login
    */
   static async get(req: Request, res: Response, next: NextFunction) {
@@ -14,27 +42,7 @@ export default class ProfileService {
       // Ambil data user dari database
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: {
-          id: true,
-          nik: true,
-          name: true,
-          profilePicture: true,
-          birthPlace: true,
-          birthDate: true,
-          gender: true,
-          job: true,
-          weightKg: true,
-          heightCm: true,
-          bloodType: true,
-          rhesus: true,
-          address: true,
-          noRt: true,
-          noRw: true,
-          village: true,
-          district: true,
-          city: true,
-          province: true,
-        },
+        select: this.SELECT_ALL_EXCLUDING_PASSWORD,
       });
 
       // Jika tidak ada user dengan ID tersebut, kirimkan pesan error
@@ -94,6 +102,7 @@ export default class ProfileService {
           city: req.body.city,
           province: req.body.province,
         },
+        select: this.SELECT_ALL_EXCLUDING_PASSWORD,
       });
 
       // Jika berhasil, kirimkan data user yang sudah di-update sebagai response
@@ -124,6 +133,7 @@ export default class ProfileService {
       const updatedUser = await prisma.user.update({
         where: { id: userId },
         data: { profilePicture: profilePictureUrl },
+        select: this.SELECT_ALL_EXCLUDING_PASSWORD,
       });
 
       // Jika berhasil, kirimkan data user yang sudah di-update sebagai response
@@ -211,7 +221,9 @@ export default class ProfileService {
       });
 
       // Jika berhasil, kirimkan pesan sukses
-      res.status(200).json({ success: true, message: "Kata sandi berhasil diubah" });
+      res
+        .status(200)
+        .json({ success: true, message: "Kata sandi berhasil diubah" });
     } catch (error) {
       // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
       next(error);
