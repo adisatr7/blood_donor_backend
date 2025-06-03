@@ -26,14 +26,14 @@ export default class AiService {
    * Method untuk mengirim pesan ke AI dan mendapatkan balasan.
    * Endpoint ini digunakan untuk chat dengan AI.
    */
-  static async chat(request: Request, response: Response, next: NextFunction) {
+  static async sendChat(req: Request, res: Response, next: NextFunction) {
     try {
       // Pastikan client sudah terhubung sebelum melakukan chat
       AiService.client = await AiService.getClient();
 
       // Ambil ID dan pesan chat terbaru dari user
-      const userId = request.user!.id;
-      const { message: userMessage } = request.body;
+      const userId = req.user!.id;
+      const { message: userMessage } = req.body;
 
       // Ambil data user agar AI lebih kenal lebih dekat dengan user
       const user = await prisma.user.findUnique({
@@ -101,8 +101,8 @@ export default class AiService {
             `${user!.birthDate} (now is ${new Date().toISOString()}), weighs ` +
             `${user!.weightKg}kg at ${user!.heightCm}cm. Blood type is ` +
             `${user!.bloodType}${user!.rhesus} living in ${user!.address}, ` +
-            `${user!.village}, ${user!.district}, ${user!.city}, ${user!.province}, ` +
-            " Indonesia.",
+            `${user!.village}, ${user!.district}, ${user!.city}, ` +
+            `${user!.province},  Indonesia.`,
         },
       });
 
@@ -122,7 +122,7 @@ export default class AiService {
           {
             conversationId: rawHistory.id,
             sender: "MODEL",
-            message: replyMessage.slice(0, -1), // Hapus '\n' bawaan response AI
+            message: replyMessage.trimEnd(), // Hapus '\n' bawaan response AI
           },
         ],
       });
@@ -134,13 +134,47 @@ export default class AiService {
           deletedAt: null,
         },
       });
-      response.status(200).json({ success: true, data });
+      res.status(200).json({ success: true, data });
     } catch (error) {
       next(error);
     }
   }
 
-  static async clear(req: Request, res: Response, next: NextFunction) {
+  static async getChat(req: Request, res: Response, next: NextFunction) {
+    try {
+      // Ambil ID user yang sedang login
+      const userId = req.user!.id;
+
+      // Ambil riwayat chat milik user ini
+      const conversation = await prisma.conversation.findFirst({
+        where: { userId },
+        include: {
+          Messages: {
+            where: { deletedAt: null },
+            orderBy: { createdAt: "asc" },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      });
+
+      if (!conversation || !conversation.Messages.length) {
+        res.status(200).json({
+          success: true,
+          data: [],
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        data: conversation.Messages,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async clearChat(req: Request, res: Response, next: NextFunction) {
     try {
       // Ambil ID user yang sedang login
       const userId = req.user!.id;

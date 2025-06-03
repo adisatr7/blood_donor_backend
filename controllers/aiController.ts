@@ -7,7 +7,8 @@ const chatParam = ["message"];
 
 const router = express.Router(); // 🌐 http://localhost:3000/api/v1/ai
 
-router.post("/chat", validateRequestBody(chatParam), AiService.chat); // Chat dengan AI
-router.delete("/chat", AiService.clear); // Chat dengan AI
+router.post("/chat", validateRequestBody(chatParam), AiService.sendChat); // Chat dengan AI
+router.get("/chat", AiService.getChat); // Chat dengan AI
+router.delete("/chat", AiService.clearChat); // Chat dengan AI
 
 export default router;
