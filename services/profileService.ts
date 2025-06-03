@@ -42,7 +42,7 @@ export default class ProfileService {
       // Ambil data user dari database
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: this.SELECT_ALL_EXCLUDING_PASSWORD,
+        select: ProfileService.SELECT_ALL_EXCLUDING_PASSWORD,
       });
 
       // Jika tidak ada user dengan ID tersebut, kirimkan pesan error
@@ -102,7 +102,7 @@ export default class ProfileService {
           city: req.body.city,
           province: req.body.province,
         },
-        select: this.SELECT_ALL_EXCLUDING_PASSWORD,
+        select: ProfileService.SELECT_ALL_EXCLUDING_PASSWORD,
       });
 
       // Jika berhasil, kirimkan data user yang sudah di-update sebagai response
@@ -133,7 +133,7 @@ export default class ProfileService {
       const updatedUser = await prisma.user.update({
         where: { id: userId },
         data: { profilePicture: profilePictureUrl },
-        select: this.SELECT_ALL_EXCLUDING_PASSWORD,
+        select: ProfileService.SELECT_ALL_EXCLUDING_PASSWORD,
       });
 
       // Jika berhasil, kirimkan data user yang sudah di-update sebagai response
