@@ -102,7 +102,7 @@ export default class AiService {
             `${user!.weightKg}kg at ${user!.heightCm}cm. Blood type is ` +
             `${user!.bloodType}${user!.rhesus} living in ${user!.address}, ` +
             `${user!.village}, ${user!.district}, ${user!.city}, ` +
-            `${user!.province},  Indonesia.`,
+            `${user!.province}, Indonesia.`,
         },
       });
 
