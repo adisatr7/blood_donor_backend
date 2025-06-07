@@ -78,8 +78,20 @@ export default class GoogleSheetService {
       return this._gsheetClient;
     }
 
-    const credentialsPath = path.join(__dirname, "../credentials/google-credentials.json");
-    const credentials = JSON.parse(fs.readFileSync(credentialsPath, "utf8"));
+    let credentials: any;
+    if (process.env.GOOGLE_CREDENTIALS_JSON) {
+      // Jika ada GOOGLE_CREDENTIALS_JSON di `.env` pakai yang itu
+      try {
+        credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+      } catch (err) {
+        throw new Error("GOOGLE_CREDENTIALS_JSON is not valid JSON");
+      }
+    } else {
+      // Jika tidak ada, cek directory `/credentials/google-credentials.json`
+      const credentialsPath = path.join(__dirname, "../credentials/google-credentials.json");
+      credentials = JSON.parse(fs.readFileSync(credentialsPath, "utf8"));
+    }
+
     const scopes = ["https://www.googleapis.com/auth/spreadsheets"];
     const auth = new google.auth.GoogleAuth({ credentials, scopes });
 
