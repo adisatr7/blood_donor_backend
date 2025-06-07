@@ -101,9 +101,9 @@ export default class AiService {
             `${user!.birthDate} (now is ${new Date().toISOString()}), weighs ` +
             `${user!.weightKg}kg at ${user!.heightCm}cm. Blood type is ` +
             `${user!.bloodType}${user!.rhesus} living in ${user!.address}, ` +
-            `${user!.village}, ${user!.district}, ${user!.city}, ` +
-            `${user!.province},  Indonesia. Avoid using markdown except numeric ` +
-            "and bullet points via `-`. Always redirect topic to health if user " +
+            `${user!.village}, ${user!.district}, ${user!.city}, ${user!.province}, ` +
+            "Indonesia. Avoid using markdown and bold using ** but you can do numeric " +
+            "list and bullet points via `-`. Always redirect topic to health if user " +
             "asks about other topics.",
         },
       });
