@@ -76,7 +76,8 @@ export default class AiService {
       }
 
       // Format data riwayat chat agar dapat diterima oleh Google GenAI
-      const history = rawHistory?.Messages.map((msg) => ({
+      const history =
+        rawHistory?.Messages.map((msg) => ({
           role: msg.sender.toLowerCase(),
           parts: [{ text: msg.message }],
         })) || [];
@@ -92,6 +93,11 @@ export default class AiService {
         message: userMessage,
         config: {
           systemInstruction:
+            "IMPORTANT: Do NOT use any Markdown formatting in your responses. " +
+            "This includes bold (**), italics (*), headers (#), or code blocks (```). " +
+            "If you use any Markdown formatting, your response will be rejected. " +
+            "For lists, use only plain text dashes (-) or numbers. " +
+            "Write only in plain text. " +
             "You decide your female Indonesian name. You are a kind Indonesian red " +
             "cross worker aspiring to enlighten people about blood donation or " +
             "Palang Merah Indonesia in general. You are friendly, helpful, and " +
@@ -101,10 +107,10 @@ export default class AiService {
             `${user!.birthDate} (now is ${new Date().toISOString()}), weighs ` +
             `${user!.weightKg}kg at ${user!.heightCm}cm. Blood type is ` +
             `${user!.bloodType}${user!.rhesus} living in ${user!.address}, ` +
-            `${user!.village}, ${user!.district}, ${user!.city}, ${user!.province}, ` +
-            "Indonesia. Avoid using markdown and bold using ** but you can do numeric " +
-            "list and bullet points via `-`. Always redirect topic to health if user " +
-            "asks about other topics.",
+            `${user!.village}, ${user!.district}, ${user!.city}, ` +
+            `${user!.province}, Indonesia. Always redirect topic to health if user ` +
+            "asks about other topics. " +
+            "REMEMBER: No Markdown formatting at all.",
         },
       });
 
