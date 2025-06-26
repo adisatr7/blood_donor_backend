@@ -41,6 +41,7 @@ model User {
   birthDate      DateTime   @map("birth_date")
   gender         Gender?
   job            String?
+  phoneNumber    String?    @map("phone_number")
   weightKg       Float?     @map("weight_kg")
   heightCm       Float?     @map("height_cm")
   bloodType      BloodType? @map("blood_type")
@@ -55,7 +56,7 @@ model User {
   createdAt      DateTime   @default(now()) @map("created_at")
   updatedAt      DateTime?  @updatedAt @map("updated_at")
 
-  Appointments Appointment[]
+  Appointments  Appointment[]
   Conversations Conversation[]
 
   @@map("users")
