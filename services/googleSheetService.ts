@@ -2,6 +2,7 @@ import { google, sheets_v4 } from "googleapis";
 import fs from "fs";
 import path from "path";
 import prisma from "../prisma/prismaClient";
+import type { AppointmentStatus } from "../prisma/client";
 
 export default class GoogleSheetService {
   private static _gsheetClient: sheets_v4.Sheets | null = null;
@@ -21,17 +22,19 @@ export default class GoogleSheetService {
 
       // Skip jika `SPREADSHEET_ID` kosong
       if (!this.SPREADSHEET_ID) {
-        console.warn("[GSHEET] SPREADSHEET_ID tidak ditemukan, sinkronisasi dibatalkan.");
+        console.warn(
+          "[GSHEET] SPREADSHEET_ID tidak ditemukan, sinkronisasi dibatalkan."
+        );
         return;
       }
 
       // Siapkan data user dan appointment yang akan dikirim
-      const exportUserData = await this.prepareUserExport();
-      const exportAppointmentData = await this.prepareAppointmentExport();
+      const userData = await this.prepareUserExport();
+      const appointmentData = await this.prepareAppointmentExport();
 
       // Kirim data ke Google Sheets
-      await this.syncToGoogleSheets(gsheetClient, exportUserData, "User!A1");
-      await this.syncToGoogleSheets(gsheetClient, exportAppointmentData, "Appointment!A1");
+      await this.syncToGoogleSheets(gsheetClient, userData, "Lihat Daftar Akun!A1");
+      await this.syncToGoogleSheets(gsheetClient, appointmentData, "Lihat Pendaftaran Donor!A1");
 
       // Tampilkan pesan berhasil jika semua proses selesai
       console.log("[GSHEET] Data berhasil dikirim ke Google Sheet!");
@@ -48,6 +51,7 @@ export default class GoogleSheetService {
    */
   private static USER_FILTERS = {
     id: true,
+    nik: true,
     name: true,
     profilePicture: true,
     birthPlace: true,
@@ -88,7 +92,10 @@ export default class GoogleSheetService {
       }
     } else {
       // Jika tidak ada, cek directory `/credentials/google-credentials.json`
-      const credentialsPath = path.join(__dirname, "../credentials/google-credentials.json");
+      const credentialsPath = path.join(
+        __dirname,
+        "../credentials/google-credentials.json"
+      );
       credentials = JSON.parse(fs.readFileSync(credentialsPath, "utf8"));
     }
 
@@ -162,6 +169,23 @@ export default class GoogleSheetService {
   }
 
   /**
+   * Parse status appointment menjadi string yang lebih mudah dibaca
+   * Misalnya: "PENDING" menjadi "Menunggu Konfirmasi"
+   */
+  private static async parseStatus(status: AppointmentStatus) {
+    switch (status) {
+      case "SCHEDULED":
+        return "Terdaftar";
+      case "ATTENDED":
+        return "Hadir";
+      case "MISSED":
+        return "Tidak Hadir";
+      default:
+        return "ERROR: Status Tidak Dikenal";
+    }
+  }
+
+  /**
    * Persiapkan data Appointment untuk diekspor ke Google Sheets
    */
   private static async prepareAppointmentExport() {
@@ -174,6 +198,7 @@ export default class GoogleSheetService {
         Location: {
           select: {
             name: true,
+            endTime: true,
           },
         },
       },
@@ -184,62 +209,34 @@ export default class GoogleSheetService {
 
     // Judul untuk header di atas
     const headers = [
-      "No",
-      "Nama Lokasi",
+      "No.",
+      "ID User",
+      "NIK",
       "Nama Lengkap Pendonor",
-      "Tempat Lahir",
-      "Tanggal Lahir",
-      "Jenis Kelamin",
-      "Pekerjaan",
-      "Berat Badan (Kg)",
-      "Tinggi Badan (Cm)",
-      "Tipe Darah",
-      "Rhesus",
-      "Alamat",
-      "No. RT",
-      "No. RW",
-      "Desa/Kelurahan",
-      "Kecamatan",
-      "Kabupaten/Kota",
-      "Provinsi",
-      "User Mendaftar Pada",
-      "User Terakhir Diperbarui",
-      "Status Appointment",
-      "Tanggal Appointment",
+      "Tanggal Donor",
+      "Lokasi Donor",
+      "Status Donor",
     ];
 
     // Susun data sesuai urutan header
     const data = appointments.map((appt, idx) => [
       idx + 1,
-      appt.Location?.name || "",
-      appt.User?.name || "",
-      appt.User?.birthPlace || "",
-      appt.User?.birthDate
-        ? appt.User.birthDate.toISOString().split("T")[0]
-        : "",
-      appt.User?.gender === "MALE" ? "Laki-laki" : "Perempuan",
-      appt.User?.job || "",
-      appt.User?.weightKg ? appt.User.weightKg.toString() : "0",
-      appt.User?.heightCm ? appt.User.heightCm.toString() : "0",
-      appt.User?.bloodType || "",
-      appt.User?.rhesus === "POSITIVE" ? "Positif" : "Negatif",
-      appt.User?.address || "",
-      appt.User?.noRt ? appt.User.noRt.toString() : "0",
-      appt.User?.noRw ? appt.User.noRw.toString() : "0",
-      appt.User?.village || "",
-      appt.User?.district || "",
-      appt.User?.city || "",
-      appt.User?.province || "",
-      appt.User?.createdAt ? appt.User.createdAt.toISOString() : "",
-      appt.User?.updatedAt ? appt.User.updatedAt.toISOString() : "",
-      appt.status,
-      appt.createdAt ? appt.createdAt.toISOString().split("T")[0] : "",
+      appt.User.id,
+      appt.User.nik || "",
+      appt.User.name || "",
+      appt.Location.endTime || "",
+      appt.Location.name || "",
+      this.parseStatus(appt.status),
     ]);
 
     return [headers, ...data];
   }
 
-  private static async syncToGoogleSheets(gsheetClient: sheets_v4.Sheets, values: any, range: string) {
+  private static async syncToGoogleSheets(
+    gsheetClient: sheets_v4.Sheets,
+    values: any,
+    range: string
+  ) {
     // Kirim data ke Google Sheets
     await gsheetClient.spreadsheets.values.update({
       spreadsheetId: this.SPREADSHEET_ID,
