@@ -227,12 +227,12 @@ export default class GoogleSheetService {
       const startTime =
         startTimeRaw && !isNaN(Date.parse(startTimeRaw))
           ? new Date(startTimeRaw)
-          : null;
+          : "ERROR: Waktu Mulai Tidak Valid";
 
       const endTime =
         endTimeRaw && !isNaN(Date.parse(endTimeRaw))
           ? new Date(endTimeRaw)
-          : null;
+          : "ERROR: Waktu Selesai Tidak Valid";
 
       // Jika semua data lengkap, simpan lokasi ke database
       await prisma.location.create({
