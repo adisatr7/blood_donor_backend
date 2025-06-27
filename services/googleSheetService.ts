@@ -31,10 +31,24 @@ export default class GoogleSheetService {
       // Siapkan data user dan appointment yang akan dikirim
       const userData = await this.prepareUserExport();
       const appointmentData = await this.prepareAppointmentExport();
+      const locationData = await this.prepareLocationExport();
 
       // Kirim data ke Google Sheets
-      await this.syncToGoogleSheets(gsheetClient, userData, "Lihat Daftar Akun!A1");
-      await this.syncToGoogleSheets(gsheetClient, appointmentData, "Lihat Pendaftaran Donor!A1");
+      await this.syncToGoogleSheets(
+        gsheetClient,
+        userData, // Data user
+        "Lihat Daftar Akun!A1"
+      );
+      await this.syncToGoogleSheets(
+        gsheetClient,
+        appointmentData, // Data appointment
+        "Lihat Pendaftaran Donor!A1"
+      );
+      await this.syncToGoogleSheets(
+        gsheetClient,
+        locationData, // Data lokasi
+        "Lihat Lokasi Donor!A1"
+      );
 
       // Tampilkan pesan berhasil jika semua proses selesai
       console.log("[GSHEET] Data berhasil dikirim ke Google Sheet!");
@@ -172,7 +186,7 @@ export default class GoogleSheetService {
    * Parse status appointment menjadi string yang lebih mudah dibaca
    * Misalnya: "PENDING" menjadi "Menunggu Konfirmasi"
    */
-  private static async parseStatus(status: AppointmentStatus) {
+  private static parseStatus(status: AppointmentStatus) {
     switch (status) {
       case "SCHEDULED":
         return "Terdaftar";
@@ -227,6 +241,49 @@ export default class GoogleSheetService {
       appt.Location.endTime || "",
       appt.Location.name || "",
       this.parseStatus(appt.status),
+    ]);
+
+    return [headers, ...data];
+  }
+
+  private static formatDate(date: Date): string {
+    return date.toLocaleString("id-ID", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  }
+
+  private static async prepareLocationExport() {
+    const locations = await prisma.location.findMany({
+      select: {
+        name: true,
+        latitude: true,
+        longitude: true,
+        startTime: true,
+        endTime: true,
+        createdAt: true,
+      },
+    });
+
+    const headers = [
+      "No.",
+      "Nama Lokasi",
+      "Lattitude (Lintang)",
+      "Longitude (Bujur)",
+      "Waktu Mulai",
+      "Waktu Selesai",
+      "Tanggal Lokasi Ditambahkan",
+    ];
+
+    // Susun data sesuai urutan header
+    const data = locations.map((loc, idx) => [
+      idx + 1,
+      loc.name,
+      loc.latitude ? loc.latitude.toFixed(6) : "",
+      loc.longitude ? loc.longitude.toFixed(6) : "",
+      loc.startTime ? this.formatDate(loc.startTime) : "",
+      loc.endTime ? this.formatDate(loc.endTime) : "",
+      loc.createdAt ? this.formatDate(loc.createdAt) : "",
     ]);
 
     return [headers, ...data];
