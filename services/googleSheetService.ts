@@ -28,6 +28,26 @@ export default class GoogleSheetService {
         return;
       }
 
+      // Ambil data inputan dari Google Sheets
+      const newLocationsData = await this.readNewLocationsFromSheet(
+        gsheetClient
+      );
+      await this.saveNewLocations(gsheetClient, newLocationsData);
+
+      // Kosongkan semua kolom view
+      await gsheetClient.spreadsheets.values.clear({
+        spreadsheetId: this.SPREADSHEET_ID,
+        range: "Lihat Daftar Akun!A1:T",
+      });
+      await gsheetClient.spreadsheets.values.clear({
+        spreadsheetId: this.SPREADSHEET_ID,
+        range: "Lihat Pendaftaran Donor!A1:G",
+      });
+      await gsheetClient.spreadsheets.values.clear({
+        spreadsheetId: this.SPREADSHEET_ID,
+        range: "Lihat Lokasi Donor!A1:G",
+      });
+
       // Siapkan data user dan appointment yang akan dikirim
       const userData = await this.prepareUserExport();
       const appointmentData = await this.prepareAppointmentExport();
@@ -51,10 +71,13 @@ export default class GoogleSheetService {
       );
 
       // Tampilkan pesan berhasil jika semua proses selesai
-      console.log("[GSHEET] Data berhasil dikirim ke Google Sheet!");
+      console.log("[GSHEET] Sinkronisasi ke Google Sheets berhasil.");
     } catch (err) {
       // Jika ada error, tampilkan pesan error
-      console.error("[GSHEET] Gagal mengirim data ke Google Sheet:", err);
+      console.error(
+        "[GSHEET] Terjadi kesalahan saat sinkronisasi ke Google Sheets:",
+        err
+      );
     }
   }
 
@@ -120,6 +143,118 @@ export default class GoogleSheetService {
     this._gsheetClient = google.sheets({ version: "v4", auth });
 
     return this._gsheetClient;
+  }
+
+  /**
+   * Baca data dari Google Sheets berdasarkan range yang diberikan.
+   */
+  static async readNewLocationsFromSheet(gsheetClient: sheets_v4.Sheets) {
+    const response = await gsheetClient.spreadsheets.values.get({
+      spreadsheetId: this.SPREADSHEET_ID,
+      range: "Tambah Lokasi Donor!A3:F",
+    });
+
+    const rows = response.data.values || [];
+    const result: any[] = [];
+
+    for (const row of rows) {
+      if (
+        !row ||
+        row.every((cell: any) => !cell || cell.toString().trim() === "")
+      ) {
+        break;
+      }
+      result.push(row);
+    }
+
+    return result;
+  }
+
+  /**
+   * Simpan data lokasi baru ke database
+   */
+  private static async saveNewLocations(
+    gsheetClient: sheets_v4.Sheets,
+    newData: string[][]
+  ) {
+    for (let i = 0; i < newData.length; i++) {
+      const location = newData[i];
+
+      const [
+        name,
+        latitudeRaw,
+        longitudeRaw,
+        mapLink,
+        startTimeRaw,
+        endTimeRaw,
+      ] = location;
+
+      let latitude: number | null = latitudeRaw
+        ? parseFloat(latitudeRaw)
+        : null;
+
+      let longitude: number | null = longitudeRaw
+        ? parseFloat(longitudeRaw)
+        : null;
+
+      if (!location[0] || !location[4] || !location[5]) {
+        console.warn(
+          `[GSHEET] Baris ${
+            i + 1
+          } tidak memiliki data yang lengkap. Lokasi akan diabaikan.`
+        );
+        continue;
+      }
+
+      // Coba ambil koordinat dari kolom ke-2 dan ke-3
+      if (location[1] && location[2]) {
+        latitude = parseFloat(location[1]);
+        longitude = parseFloat(location[2]);
+      }
+
+      // Jika tidak ada, coba ambil dari kolom ke-4
+      // TODO: Make a crawler
+
+      // Jika sama sekali tidak ada koordinat, skip lokasi ini
+      if (!latitude || !longitude) {
+        console.error(
+          `[GSHEET] Lokasi "${name}" tidak memiliki koordinat yang valid. Lokasi akan diabaikan.`
+        );
+        continue;
+      }
+
+      // Convert objek dari ISO string ke Date yang dapat diterima oleh sistem
+      const startTime =
+        startTimeRaw && !isNaN(Date.parse(startTimeRaw))
+          ? new Date(startTimeRaw)
+          : null;
+
+      const endTime =
+        endTimeRaw && !isNaN(Date.parse(endTimeRaw))
+          ? new Date(endTimeRaw)
+          : null;
+
+      // Jika semua data lengkap, simpan lokasi ke database
+      await prisma.location.create({
+        data: {
+          name,
+          latitude,
+          longitude,
+          startTime,
+          endTime,
+        },
+      });
+
+      // Jika data berhasil dibuat, hapus barisnya di Google Spreadsheet agar tidak ada duplikat
+      await gsheetClient.spreadsheets.values.clear({
+        spreadsheetId: this.SPREADSHEET_ID,
+        range: `Tambah Lokasi Donor!A${i + 3}:F${i + 3}`,
+      });
+
+      console.log(
+        `[GSHEET] Lokasi "${location[0]}" berhasil disimpan ke database.`
+      );
+    }
   }
 
   /**
