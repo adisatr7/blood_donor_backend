@@ -391,6 +391,7 @@ export default class GoogleSheetService {
   private static async prepareLocationExport() {
     const locations = await prisma.location.findMany({
       select: {
+        id: true,
         name: true,
         latitude: true,
         longitude: true,
@@ -398,10 +399,14 @@ export default class GoogleSheetService {
         endTime: true,
         createdAt: true,
       },
+      where: {
+        deletedAt: null, // Pastikan hanya mengambil lokasi yang belum dihapus
+      },
     });
 
     const headers = [
       "No.",
+      "ID Lokasi",
       "Nama Lokasi",
       "Lattitude (Lintang)",
       "Longitude (Bujur)",
@@ -413,6 +418,7 @@ export default class GoogleSheetService {
     // Susun data sesuai urutan header
     const data = locations.map((loc, idx) => [
       idx + 1,
+      loc.id,
       loc.name,
       loc.latitude ? loc.latitude.toFixed(6) : "",
       loc.longitude ? loc.longitude.toFixed(6) : "",
