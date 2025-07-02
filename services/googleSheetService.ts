@@ -385,6 +385,7 @@ export default class GoogleSheetService {
     return date.toLocaleString("id-ID", {
       dateStyle: "medium",
       timeStyle: "short",
+      timeZone: "Asia/Jakarta",
     });
   }
 
