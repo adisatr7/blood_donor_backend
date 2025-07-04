@@ -128,7 +128,7 @@ export default class ProfileService {
       let profilePictureUrl: string | null = null;
       if (req.file) {
         // Simpan URL foto profil yang diupload
-        profilePictureUrl = `/public/uploads/${req.file.filename}`;
+        profilePictureUrl = `/public/uploads/photos/${req.file.filename}`;
       }
 
       // Update foto profil di database
