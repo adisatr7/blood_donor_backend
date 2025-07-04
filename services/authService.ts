@@ -73,7 +73,7 @@ export default class AuthService {
       // Jika ada foto profil yang diupload, simpan di folder `public/uploads`
       let profilePictureUrl;
       if (req.file) {
-        profilePictureUrl = `/public/uploads/${req.file.filename}`;
+        profilePictureUrl = `/public/uploads/photos/${req.file.filename}`;
       }
 
       // Simpan data user baru ke database

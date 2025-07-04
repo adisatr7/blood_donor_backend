@@ -40,9 +40,11 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 prisma/client
 
 # User uploaded files
-public/uploads/*.jpg
-public/uploads/*.jpeg
-public/uploads/*.png
+public/uploads/*.*
+public/uploads/photos/*
+public/uploads/pdfs/*
+!public/uploads/photos/.keep
+!public/uploads/pdfs/.keep
 
 # Credentials
 credentials/*

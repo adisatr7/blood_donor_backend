@@ -1,7 +1,7 @@
-import express from "express"
-import upload from "../middlewares/upload"
-import validateRequestBody from "../middlewares/validateRequestBody"
-import ProfileService from "../services/profileService"
+import express from "express";
+import upload from "../middlewares/upload";
+import validateRequestBody from "../middlewares/validateRequestBody";
+import ProfileService from "../services/profileService";
 
 const router = express.Router(); // 🌐 http://localhost:3000/api/v1/profile
 

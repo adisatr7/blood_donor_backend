@@ -1,12 +1,15 @@
-import express from "express"
-import validateRequestBody from "../middlewares/validateRequestBody"
-import AppointmentService from "../services/appointmentService"
+import express from "express";
+import upload from "../middlewares/upload";
+import validateRequestBody from "../middlewares/validateRequestBody";
+import AppointmentService from "../services/appointmentService";
 
 // Request body yang dibutuhkan untuk membuat dan mengubah data appointment
 const createParams = ["locationId", "questionnaireSections"];
 const updateParams = ["status"];
 
 const router = express.Router(); // 🌐 http://localhost:3000/api/v1/appointments
+
+router.post("/:id/pdf", upload.single("pdf"), AppointmentService.uploadPdf); // Upload dokumen PDF
 
 router.get("/:id", AppointmentService.getById); // Ambil 1 appointment detail berdasarkan id
 router.patch("/:id", validateRequestBody(updateParams), AppointmentService.update); // Update appointment berdasarkan id

@@ -166,6 +166,42 @@ export default class AppointmentService {
     }
   }
 
+  /**
+   * Upload dokumen PDF
+   */
+  static async uploadPdf(req: Request, res: Response, next: NextFunction) {
+    try {
+      // Ambil ID user yang sedang login dan ID appointment dari parameter URL
+      const userId = req.user!.id;
+      const appointmentId = parseInt(req.params.id);
+
+      // Pastikan file PDF ada di request
+      if (!req.file || req.file.mimetype !== "application/pdf") {
+        res.status(400).json({
+          success: false,
+          message: "File harus berupa dokumen PDF",
+        });
+        return;
+      }
+
+      // Update appointment dengan file PDF
+      const updatedAppointment = await prisma.appointment.update({
+        where: { id: appointmentId, userId },
+        data: { pdfUrl: `/public/uploads/pdfs/${req.file.filename}` },
+      });
+
+      // Kirimkan response sukses
+      res.status(200).json({
+        success: true,
+        data: updatedAppointment,
+      });
+    } catch (error) {
+      // Jika terjadi error, kirimkan response dengan pesan error yang sesuai
+      next(error);
+    }
+  }
+
+
   // ? Method DELETE *sengaja tidak digunakan* karena appointment tidak seharusnya dapat dihapus
   // static async cancel(req: Request, res: Response, next: NextFunction) {
   //   try {
