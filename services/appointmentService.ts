@@ -173,7 +173,7 @@ export default class AppointmentService {
     try {
       // Ambil ID user yang sedang login dan ID appointment dari parameter URL
       const userId = req.user!.id;
-      const appointmentId = parseInt(req.params.id);
+      const appointmentId = parseInt(req.params.id, 10);
 
       // Pastikan file PDF ada di request
       if (!req.file || req.file.mimetype !== "application/pdf") {
