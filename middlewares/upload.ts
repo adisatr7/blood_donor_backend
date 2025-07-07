@@ -24,7 +24,7 @@ const storage = multer.diskStorage({
       cb(null, pdfsDir);
     } else {
       // ❌ Jika bukan gambar atau PDF, tolak upload
-      cb(new Error("Hanya file gambar dan PDF yang diperbolehkan"), "");
+      cb(new Error("Hanya file gambar dan PDF yang diperbolehkan"));
     }
   },
   filename: (_, file, cb) => {
