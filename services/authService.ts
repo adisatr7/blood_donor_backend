@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { Rhesus, type BloodType, type Gender } from "../prisma/client";
+import type { Rhesus, BloodType, Gender } from "../prisma/client";
 import prisma from "../prisma/prismaClient";
 import UserValidation from "../utils/userValidation";
 
