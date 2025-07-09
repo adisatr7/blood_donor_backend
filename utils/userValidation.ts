@@ -49,7 +49,7 @@ export default class UserValidation {
       return _rhesus as Rhesus;
     }
 
-    console.error("Format rhesus tidak dikenali. Gunakan `POSITIVE` atau `NEGATIVE`");
+    console.error("Error: Format rhesus tidak dikenali. Gunakan `POSITIVE` atau `NEGATIVE`");
     throw new Error("Format rhesus tidak dikenali. Hubungi pihak developer untuk bantuan");
   }
 }
