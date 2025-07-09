@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import type { NextFunction, Request, Response } from "express";
+import type { BloodType, Gender, Rhesus } from "../prisma/client";
 import prisma from "../prisma/prismaClient";
+import UserValidation from "../utils/userValidation";
 
 export default class ProfileService {
   /**
@@ -81,6 +83,23 @@ export default class ProfileService {
         return;
       }
 
+      // Validasi data enum
+      let gender: Gender | null = null;
+      let bloodType: BloodType | null = null;
+      let rhesus: Rhesus | null = null;
+      try {
+        gender = UserValidation.validateGender(req.body.gender);
+        bloodType = UserValidation.validateBloodType(req.body.bloodType);
+        rhesus = UserValidation.validateRhesus(req.body.rhesus);
+      } catch (error) {
+        // Jika validasi gagal, kirim pesan error melalui response ke mobile app
+        res.status(400).json({
+          success: false,
+          error: "Format data tidak valid. Hubungi pihak developer untuk bantuan",
+        });
+        return;
+      }
+
       // Ubah data user di database
       const updatedUser = await prisma.user.update({
         where: { id: userId },
@@ -89,13 +108,13 @@ export default class ProfileService {
           name: req.body.name,
           birthPlace: req.body.birthPlace,
           birthDate: req.body.birthDate,
-          gender: req.body.gender,
+          gender: gender,
           job: req.body.job,
           phoneNumber: req.body.phoneNumber,
           weightKg: req.body.weightKg,
           heightCm: req.body.heightCm,
-          bloodType: req.body.bloodType,
-          rhesus: req.body.rhesus,
+          bloodType: bloodType,
+          rhesus: rhesus,
           address: req.body.address,
           noRt: req.body.noRt,
           noRw: req.body.noRw,

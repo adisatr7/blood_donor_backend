@@ -1,7 +1,9 @@
 import bcrypt from "bcryptjs";
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { Rhesus, type BloodType, type Gender } from "../prisma/client";
 import prisma from "../prisma/prismaClient";
+import UserValidation from "../utils/userValidation";
 
 // Secret keys diambil dari file `.env`
 const JWT_SECRET = process.env.JWT_SECRET ?? "";
@@ -76,6 +78,23 @@ export default class AuthService {
         profilePictureUrl = `/public/uploads/photos/${req.file.filename}`;
       }
 
+      // Validasi data enum
+      let gender: Gender | null = null;
+      let bloodType: BloodType | null = null;
+      let rhesus: Rhesus | null = null;
+      try {
+        gender = UserValidation.validateGender(userData.gender);
+        bloodType = UserValidation.validateBloodType(userData.bloodType);
+        rhesus = UserValidation.validateRhesus(userData.rhesus);
+      } catch (error) {
+        // Jika validasi gagal, kirim pesan error melalui response ke mobile app
+        res.status(400).json({
+          success: false,
+          error: "Format data tidak valid. Hubungi pihak developer untuk bantuan",
+        });
+        return;
+      }
+
       // Simpan data user baru ke database
       const newUser = await prisma.user.create({
         data: {
@@ -85,12 +104,12 @@ export default class AuthService {
           profilePicture: profilePictureUrl, // Simpan foto profil (jika ada)
           birthPlace: userData.birthPlace,
           birthDate: new Date(userData.birthDate), // Ubah format tanggal menjadi Date
-          gender: userData.gender,
+          gender: gender,
           job: userData.job,
           weightKg: userData.weightKg ? parseFloat(userData.weightKg) : 0.0,
           heightCm: userData.heightCm ? parseFloat(userData.heightCm) : 0.0,
-          bloodType: userData.bloodType,
-          rhesus: userData.rhesus,
+          bloodType: bloodType,
+          rhesus: rhesus,
           address: userData.address,
           noRt: userData.noRt ? parseInt(userData.noRt) : 0,
           noRw: userData.noRw ? parseInt(userData.noRw) : 0,
