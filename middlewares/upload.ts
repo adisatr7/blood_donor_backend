@@ -13,18 +13,19 @@ const pdfsDir = path.join(__dirname, "../public/uploads/pdfs");
   }
 });
 
-// ⚙️ Konfigurasi multer untuk menyimpan file ke folder sesuai tipe file
+// ⚙️ Konfigurasi multer untuk menyimpan file ke folder sesuai ekstensi file
 const storage = multer.diskStorage({
   destination: (_, file, cb) => {
-    if (file.mimetype.startsWith("image/")) {
-      // 📷 Simpan gambar ke folder photos
+    const ext = path.extname(file.originalname).toLowerCase();
+    const imageExts = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".heic"];
+    const pdfExts = [".pdf"];
+
+    if (imageExts.includes(ext)) {
       cb(null, photosDir);
-    } else if (file.mimetype === "application/pdf") {
-      // 📄 Simpan PDF ke folder pdfs
+    } else if (pdfExts.includes(ext)) {
       cb(null, pdfsDir);
     } else {
-      // ❌ Jika bukan gambar atau PDF, tolak upload
-      cb(new Error("Hanya file gambar dan PDF yang diperbolehkan"));
+      cb(new Error("Hanya file gambar dan PDF yang diperbolehkan"), "");
     }
   },
   filename: (_, file, cb) => {
