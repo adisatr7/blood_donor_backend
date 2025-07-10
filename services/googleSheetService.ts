@@ -279,17 +279,12 @@ export default class GoogleSheetService {
         // Siapkan data yang akan di-update
         const updateData: any = {};
         if (status) {
-          switch (status) {
-            case 'Terdaftar':
-              updateData.status = "SCHEDULED";
-              break;
-            case 'Hadir':
-              updateData.status = "ATTENDED";
-              break;
-            case 'Tidak Hadir':
-            default:
-              updateData.status = "MISSED";
-          }
+          const statusMapping: Record<string, AppointmentStatus> = {
+            'Terdaftar': "SCHEDULED",
+            'Hadir': "ATTENDED",
+            'Tidak Hadir': "MISSED",
+          };
+          updateData.status = statusMapping[status] || "MISSED";
         }
 
         try {
