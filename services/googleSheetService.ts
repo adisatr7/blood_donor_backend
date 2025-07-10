@@ -293,12 +293,16 @@ export default class GoogleSheetService {
         }
 
         try {
-          await prisma.appointment.update({
-            where: { id: appointmentId, userId },
-            data: updateData,
-          });
+          if (Object.keys(updateData).length > 0) {
+            await prisma.appointment.update({
+              where: { id: appointmentId, userId },
+              data: updateData,
+            });
 
-          console.log(`[GSHEET] Status donor ID ${appointmentId} berhasil diperbarui`);
+            console.log(`[GSHEET] Status donor ID ${appointmentId} berhasil diperbarui`);
+          } else {
+            console.log(`[GSHEET] Tidak ada perubahan status untuk donor ID ${appointmentId}`);
+          }
         } catch (err) {
           console.error(`[GSHEET] Gagal memperbarui status donor ID ${appointmentId}:`, err);
         }
