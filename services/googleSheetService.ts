@@ -32,7 +32,7 @@ export default class GoogleSheetService {
       const newLocationsData = await this.readNewLocationsFromSheet(gsheetClient);
       await this.saveNewLocations(gsheetClient, newLocationsData);
 
-      // 2. Pantai perubahan data appointment di sheet (jika ada)
+      // 2. Pantau perubahan data appointment di sheet (jika ada)
       await this.updateAppointmentStatus(gsheetClient);
 
       // 3. Kosongkan semua kolom view
