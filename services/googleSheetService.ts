@@ -28,32 +28,32 @@ export default class GoogleSheetService {
         return;
       }
 
-      // Ambil data inputan dari Google Sheets
-      const newLocationsData = await this.readNewLocationsFromSheet(
-        gsheetClient
-      );
+      // 1. Ambil data inputan dari Google Sheets
+      const newLocationsData = await this.readNewLocationsFromSheet(gsheetClient);
       await this.saveNewLocations(gsheetClient, newLocationsData);
 
-      // Kosongkan semua kolom view
+      // 2. Pantai perubahan data appointment di sheet (jika ada)
+      await this.updateAppointmentStatus(gsheetClient);
+
+      // 3. Kosongkan semua kolom view
       await gsheetClient.spreadsheets.values.clear({
         spreadsheetId: this.SPREADSHEET_ID,
         range: "Lihat Daftar Akun!A1:T",
       });
       await gsheetClient.spreadsheets.values.clear({
         spreadsheetId: this.SPREADSHEET_ID,
-        range: "Lihat Pendaftaran Donor!A1:G",
+        range: "Lihat Pendaftaran Donor!A1:I",
       });
       await gsheetClient.spreadsheets.values.clear({
         spreadsheetId: this.SPREADSHEET_ID,
-        range: "Lihat Lokasi Donor!A1:G",
+        range: "Lihat Lokasi Donor!A1:H",
       });
 
-      // Siapkan data user dan appointment yang akan dikirim
+      // 4. Siapkan dan kirim data untuk di-export ke Google Spreadsheet
       const userData = await this.prepareUserExport();
       const appointmentData = await this.prepareAppointmentExport();
       const locationData = await this.prepareLocationExport();
 
-      // Kirim data ke Google Sheets
       await this.syncToGoogleSheets(
         gsheetClient,
         userData, // Data user
@@ -258,6 +258,55 @@ export default class GoogleSheetService {
   }
 
   /**
+   * Cek baris appointment yang di-edit (kolom A ada isinya), lalu update ke DB
+   */
+  private static async updateAppointmentStatus(gsheetClient: sheets_v4.Sheets) {
+    // Ambil data dari sheet appointment
+    const response = await gsheetClient.spreadsheets.values.get({
+      spreadsheetId: this.SPREADSHEET_ID,
+      range: "Lihat Pendaftaran Donor!A2:I",
+    });
+    const rows = response.data.values || [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      // Jika kolom A (Mode Edit) ada isinya (bisa TRUE, 1, atau apapun)
+      if (row[0] && row[0].toString().trim() !== "") {
+        const appointmentId = parseInt(row[2]); // C: ID Appointment
+        const userId = parseInt(row[3]); // D: ID User
+        const status = row[8]; // I: Status Donor
+
+        // Siapkan data yang akan di-update
+        const updateData: any = {};
+        if (status) {
+          switch (status) {
+            case 'Terdaftar':
+              updateData.status = "SCHEDULED";
+              break;
+            case 'Hadir':
+              updateData.status = "ATTENDED";
+              break;
+            case 'Tidak Hadir':
+            default:
+              updateData.status = "MISSED";
+          }
+        }
+
+        try {
+          await prisma.appointment.update({
+            where: { id: appointmentId, userId },
+            data: updateData,
+          });
+
+          console.log(`[GSHEET] Status donor ID ${appointmentId} berhasil diperbarui`);
+        } catch (err) {
+          console.error(`[GSHEET] Gagal memperbarui status donor ID ${appointmentId}:`, err);
+        }
+      }
+    }
+  }
+
+  /**
    * Persiapkan data User untuk diekspor ke Google Sheets
    */
   private static async prepareUserExport() {
@@ -358,7 +407,9 @@ export default class GoogleSheetService {
 
     // Judul untuk header di atas
     const headers = [
+      "Mode Edit",
       "No.",
+      "ID Appointment",
       "ID User",
       "NIK",
       "Nama Lengkap Pendonor",
@@ -369,7 +420,9 @@ export default class GoogleSheetService {
 
     // Susun data sesuai urutan header
     const data = appointments.map((appt, idx) => [
+      "",
       idx + 1,
+      appt.id,
       appt.User.id,
       appt.User.nik || "",
       appt.User.name || "",
