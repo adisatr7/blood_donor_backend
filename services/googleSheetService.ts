@@ -197,22 +197,19 @@ export default class GoogleSheetService {
    */
   private static parseCoordinatesFromUrl(url: string): { lat: number; lng: number } | null {
     // Metode 1: Coba match @lat,lng (contoh: https://maps.app.goo.gl/abc123@-6.123456,106.123456)
-    const atPattern = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
-    const atMatch = url.match(atPattern);
+    const atMatch = url.match(this.AT_PATTERN);
     if (atMatch) {
       return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
     }
 
     // Metode 2: Coba match ?q=lat,lng atau &q=lat,lng
-    const qPattern = /[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/;
-    const qMatch = url.match(qPattern);
+    const qMatch = url.match(this.Q_PATTERN);
     if (qMatch) {
       return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
     }
 
     // Metode 3: Coba match URL nama tempat: /(-?\d+\.\d+),(-?\d+\.\d+)/
-    const placePattern = /\/(-?\d+\.\d+),(-?\d+\.\d+)\//;
-    const placeMatch = url.match(placePattern);
+    const placeMatch = url.match(this.PLACE_PATTERN);
     if (placeMatch) {
       return { lat: parseFloat(placeMatch[1]), lng: parseFloat(placeMatch[2]) };
     }
