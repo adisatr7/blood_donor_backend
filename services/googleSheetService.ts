@@ -1,8 +1,10 @@
-import { google, sheets_v4 } from "googleapis";
 import fs from "fs";
+import { google, sheets_v4 } from "googleapis";
+import https from "https";
+import http from "http";
 import path from "path";
-import prisma from "../prisma/prismaClient";
 import type { AppointmentStatus } from "../prisma/client";
+import prisma from "../prisma/prismaClient";
 
 export default class GoogleSheetService {
   private static _gsheetClient: sheets_v4.Sheets | null = null;
@@ -22,9 +24,7 @@ export default class GoogleSheetService {
 
       // Skip jika `SPREADSHEET_ID` kosong
       if (!this.SPREADSHEET_ID) {
-        console.warn(
-          "[GSHEET] SPREADSHEET_ID tidak ditemukan, sinkronisasi dibatalkan."
-        );
+        console.warn("[GSHEET] SPREADSHEET_ID tidak ditemukan, sinkronisasi dibatalkan.");
         return;
       }
 
@@ -74,10 +74,7 @@ export default class GoogleSheetService {
       console.log("[GSHEET] Sinkronisasi ke Google Sheets berhasil.");
     } catch (err) {
       // Jika ada error, tampilkan pesan error
-      console.error(
-        "[GSHEET] Terjadi kesalahan saat sinkronisasi ke Google Sheets:",
-        err
-      );
+      console.error("[GSHEET] Terjadi kesalahan saat sinkronisasi ke Google Sheets:", err);
     }
   }
 
@@ -146,6 +143,85 @@ export default class GoogleSheetService {
   }
 
   /**
+   * Ambil koordinat dari URL Google Maps. Jika URL adalah link pendek (shortened link),
+   * resolve dulu ke URL lengkapnya, lalu ambil koordinatnya.
+   */
+  private static async extractLatLngFromGmapUrl(url: string): Promise<{ lat: number; lng: number } | null> {
+    let fullUrl = url;
+
+    // Jika URL adalah link pendek (shortened link), resolve dulu ke URL lengkapnya
+    if (url.includes("maps.app.goo.gl") || url.includes("goo.gl")) {
+      try {
+        fullUrl = await this.resolveRedirectUrl(url);
+      } catch (err) {
+        console.error(`[GSHEET] Failed to resolve shortened URL: ${url}`, err);
+        return null;
+      }
+    }
+
+    // Ambil koordinat dari URL lengkap
+    return this.parseCoordinatesFromUrl(fullUrl);
+  }
+
+  /**
+   * Resolve URL pendek (shortened URL) menjadi URL lengkap.
+   * Menggunakan HTTP/HTTPS request untuk mengikuti redirect.
+   */
+  private static async resolveRedirectUrl(shortUrl: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const protocol = shortUrl.startsWith("https:") ? https : http;
+
+      const req = protocol.get(shortUrl, (res) => {
+        if (
+          res.statusCode &&
+          res.statusCode >= 300 &&
+          res.statusCode < 400 &&
+          res.headers.location
+        ) {
+          resolve(res.headers.location);
+        } else {
+          reject(new Error(`Gagal mengalihkan ${shortUrl}`));
+        }
+      });
+
+      req.on("error", reject);
+      req.setTimeout(5000, () => {
+        req.destroy();
+        reject(new Error("Request timeout"));
+      });
+    });
+  }
+
+  /**
+   * Parse koordinat dari URL Google Maps.
+   */
+  private static parseCoordinatesFromUrl(url: string): { lat: number; lng: number } | null {
+    // Metode 1: Coba match @lat,lng (contoh: https://maps.app.goo.gl/abc123@-6.123456,106.123456)
+    const atPattern = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
+    const atMatch = url.match(atPattern);
+    if (atMatch) {
+      return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
+    }
+
+    // Metode 2: Coba match ?q=lat,lng atau &q=lat,lng
+    const qPattern = /[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/;
+    const qMatch = url.match(qPattern);
+    if (qMatch) {
+      return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
+    }
+
+    // Metode 3: Coba match URL nama tempat: /(-?\d+\.\d+),(-?\d+\.\d+)/
+    const placePattern = /\/(-?\d+\.\d+),(-?\d+\.\d+)\//;
+    const placeMatch = url.match(placePattern);
+    if (placeMatch) {
+      return { lat: parseFloat(placeMatch[1]), lng: parseFloat(placeMatch[2]) };
+    }
+
+    // Jika semua metode gagal, return null
+    return null;
+  }
+
+  /**
    * Baca data dari Google Sheets berdasarkan range yang diberikan.
    */
   static async readNewLocationsFromSheet(gsheetClient: sheets_v4.Sheets) {
@@ -173,10 +249,7 @@ export default class GoogleSheetService {
   /**
    * Simpan data lokasi baru ke database
    */
-  private static async saveNewLocations(
-    gsheetClient: sheets_v4.Sheets,
-    newData: string[][]
-  ) {
+  private static async saveNewLocations(gsheetClient: sheets_v4.Sheets, newData: string[][]) {
     for (let i = 0; i < newData.length; i++) {
       const location = newData[i];
 
@@ -213,13 +286,18 @@ export default class GoogleSheetService {
       }
 
       // Jika tidak ada, coba ambil dari kolom ke-4
-      // TODO: Make a crawler
+      if ((!latitude || !longitude) && mapLink) {
+        const coords = await this.extractLatLngFromGmapUrl(mapLink);
+        if (coords) {
+          latitude = coords.lat;
+          longitude = coords.lng;
+          console.log(`[GSHEET] Extracted coordinates from map link: ${latitude}, ${longitude}`);
+        }
+      }
 
       // Jika sama sekali tidak ada koordinat, skip lokasi ini
       if (!latitude || !longitude) {
-        console.error(
-          `[GSHEET] Lokasi "${name}" tidak memiliki koordinat yang valid. Lokasi akan diabaikan.`
-        );
+        console.error(`[GSHEET] Lokasi "${name}" tidak memiliki koordinat yang valid. Lokasi akan diabaikan.`);
         continue;
       }
 
@@ -251,9 +329,7 @@ export default class GoogleSheetService {
         range: `Tambah Lokasi Donor!A${i + 3}:F${i + 3}`,
       });
 
-      console.log(
-        `[GSHEET] Lokasi "${location[0]}" berhasil disimpan ke database.`
-      );
+      console.log(`[GSHEET] Lokasi "${location[0]}" berhasil disimpan ke database.`);
     }
   }
 
@@ -280,9 +356,9 @@ export default class GoogleSheetService {
         const updateData: any = {};
         if (status) {
           const statusMapping: Record<string, AppointmentStatus> = {
-            'Terdaftar': "SCHEDULED",
-            'Hadir': "ATTENDED",
-            'Tidak Hadir': "MISSED",
+            Terdaftar: "SCHEDULED",
+            Hadir: "ATTENDED",
+            "Tidak Hadir": "MISSED",
           };
           updateData.status = statusMapping[status] || "MISSED";
         }
