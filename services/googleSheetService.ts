@@ -197,19 +197,22 @@ export default class GoogleSheetService {
    */
   private static parseCoordinatesFromUrl(url: string): { lat: number; lng: number } | null {
     // Metode 1: Coba match @lat,lng (contoh: https://maps.app.goo.gl/abc123@-6.123456,106.123456)
-    const atMatch = url.match(this.AT_PATTERN);
+    const atPattern = /@(-?\d+\.\d+),(-?\d+\.\d+)/;
+    const atMatch = url.match(atPattern);
     if (atMatch) {
       return { lat: parseFloat(atMatch[1]), lng: parseFloat(atMatch[2]) };
     }
 
     // Metode 2: Coba match ?q=lat,lng atau &q=lat,lng
-    const qMatch = url.match(this.Q_PATTERN);
+    const qPattern = /[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/;
+    const qMatch = url.match(qPattern);
     if (qMatch) {
       return { lat: parseFloat(qMatch[1]), lng: parseFloat(qMatch[2]) };
     }
 
     // Metode 3: Coba match URL nama tempat: /(-?\d+\.\d+),(-?\d+\.\d+)/
-    const placeMatch = url.match(this.PLACE_PATTERN);
+    const placePattern = /\/(-?\d+\.\d+),(-?\d+\.\d+)\//;
+    const placeMatch = url.match(placePattern);
     if (placeMatch) {
       return { lat: parseFloat(placeMatch[1]), lng: parseFloat(placeMatch[2]) };
     }
@@ -415,7 +418,7 @@ export default class GoogleSheetService {
     const data = users.map((user) => [
       user.id,
       user.name,
-      user.profilePicture || "",
+      user.profilePicture ? `${process.env.BASE_URL}${user.profilePicture}` : "-",
       user.birthPlace,
       user.birthDate ? user.birthDate.toISOString().split("T")[0] : "",
       user.gender === `MALE` ? "Laki-laki" : "Perempuan",
@@ -488,6 +491,7 @@ export default class GoogleSheetService {
       "Tanggal Donor",
       "Lokasi Donor",
       "Status Donor",
+      "PDF Formulir Pendaftaran",
     ];
 
     // Susun data sesuai urutan header
@@ -501,6 +505,7 @@ export default class GoogleSheetService {
       appt.Location.endTime || "",
       appt.Location.name || "",
       this.parseStatus(appt.status),
+      appt.pdfUrl ? `${process.env.BASE_URL}${appt.pdfUrl}` : "-",
     ]);
 
     return [headers, ...data];

@@ -176,7 +176,7 @@ export default class AppointmentService {
       const appointmentId = parseInt(req.params.id, 10);
 
       // Pastikan file PDF ada di request
-      if (!req.file || req.file.mimetype !== "application/pdf") {
+      if (!req.file) {
         res.status(400).json({
           success: false,
           message: "File harus berupa dokumen PDF",
