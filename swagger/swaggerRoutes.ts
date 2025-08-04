@@ -110,6 +110,8 @@ export const userRoutes = `
  *                   $ref: '#/components/schemas/UserResponse'
  *       400:
  *         description: Invalid request body
+ *       404:
+ *         description: User not found
  */
 
 /**
