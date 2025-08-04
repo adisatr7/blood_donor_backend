@@ -5,7 +5,7 @@ export const userRoutes = `
  *   post:
  *     summary: Create a new user
  *     tags:
- *       - Admin
+ *       - User
  *     requestBody:
  *       required: true
  *       content:
@@ -36,7 +36,7 @@ export const userRoutes = `
  *   get:
  *     summary: Get all users
  *     tags:
- *       - Admin
+ *       - User
  *     responses:
  *       200:
  *         description: List of all users
@@ -54,7 +54,7 @@ export const userRoutes = `
  *   get:
  *     summary: Get a user by ID
  *     tags:
- *       - Admin
+ *       - User
  *     parameters:
  *       - name: userId
  *         in: path
@@ -83,7 +83,7 @@ export const userRoutes = `
  *   patch:
  *     summary: Update a user by ID
  *     tags:
- *       - Admin
+ *       - User
  *     parameters:
  *       - name: userId
  *         in: path
@@ -120,7 +120,7 @@ export const userRoutes = `
  *   patch:
  *     summary: Upload a new profile picture for a user
  *     tags:
- *       - Admin
+ *       - User
  *     parameters:
  *       - name: userId
  *         in: path
@@ -153,5 +153,147 @@ export const userRoutes = `
  *         description: Invalid request body
  *       404:
  *         description: User not found
+ */
+`;
+
+export const locationRoutes = `
+/**
+ * @swagger
+ * /admin/locations:
+ *   post:
+ *     summary: Create a new location
+ *     tags:
+ *       - Locations
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LocationRequest'
+ *     responses:
+ *       201:
+ *         description: Location created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/LocationResponse'
+ *       400:
+ *         description: Invalid request body
+ */
+
+/**
+ * @swagger
+ * /admin/locations/search:
+ *   get:
+ *     summary: Search locations by name
+ *     tags:
+ *       - Locations
+ *     parameters:
+ *       - name: name
+ *         in: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The name or partial name of the location to search for
+ *     responses:
+ *       200:
+ *         description: List of matching locations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/LocationResponse'
+ *       400:
+ *         description: Missing query parameter 'name'
+ */
+
+/**
+ * @swagger
+ * /admin/locations:
+ *   get:
+ *     summary: Get all locations
+ *     tags:
+ *       - Locations
+ *     responses:
+ *       200:
+ *         description: List of all locations
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/LocationResponse'
+ */
+
+/**
+ * @swagger
+ * /admin/locations/{id}:
+ *   get:
+ *     summary: Get a location by ID
+ *     tags:
+ *       - Locations
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Location details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/LocationResponse'
+ *       404:
+ *         description: Location not found
+ */
+
+/**
+ * @swagger
+ * /admin/locations/{id}:
+ *   patch:
+ *     summary: Update a location by ID
+ *     tags:
+ *       - Locations
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/LocationRequest'
+ *     responses:
+ *       200:
+ *         description: Location updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   $ref: '#/components/schemas/LocationResponse'
+ *       400:
+ *         description: Invalid request body
+ *       404:
+ *         description: Location not found
  */
 `;

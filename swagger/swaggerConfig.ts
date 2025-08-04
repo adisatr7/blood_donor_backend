@@ -2,7 +2,8 @@ import swaggerJsDoc from "swagger-jsdoc";
 import {
   userRequestSchema,
   userResponseSchema,
-  locationSchema,
+  locationRequestSchema,
+  locationResponseSchema,
   appointmentSchema,
   questionnaireSchema,
 } from "./swaggerSchema";
@@ -24,7 +25,8 @@ const swaggerOptions = {
       schemas: {
         UserRequest: userRequestSchema,
         UserResponse: userResponseSchema,
-        Location: locationSchema,
+        LocationRequest: locationRequestSchema,
+        LocationResponse: locationResponseSchema,
         Appointment: appointmentSchema,
         Questionnaire: questionnaireSchema,
       },
