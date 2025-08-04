@@ -259,7 +259,7 @@ export default class UserService {
     next: NextFunction
   ) {
     try {
-      const userId = (req.query?.id as string) ?? "ERROR";
+      const userId = (req.params?.id as string) ?? "ERROR";
 
       if (userId === "ERROR") {
         res.status(400).json({
