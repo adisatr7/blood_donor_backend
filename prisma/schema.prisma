@@ -144,3 +144,13 @@ model Message {
   @@index([conversationId])
   @@map("messages")
 }
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  secretKey String   @unique @map("secret_key")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("admins")
+}
