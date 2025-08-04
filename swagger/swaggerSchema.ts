@@ -100,7 +100,7 @@ export const locationSchema = {
     endTime: { type: "string", format: "date-time" },
     createdAt: { type: "string", format: "date-time" },
     updatedAt: { type: "string", format: "date-time" },
-    deletedAt: { type: "string", format: "date-time" },
+    deletedAt: { type: "string", format: "date-time", nullable: true },
   },
 };
 
