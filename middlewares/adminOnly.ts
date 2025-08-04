@@ -6,10 +6,8 @@ import prisma from "../prisma/prismaClient";
  */
 export default async function adminOnly(req: Request, res: Response, next: NextFunction) {
   try {
-    const { secretKey } = req.body;
-
     const admin = await prisma.admin.findUnique({
-      where: { secretKey },
+      where: { secretKey: req.body.secretKey },
     })
 
     if (!admin) {
@@ -20,7 +18,7 @@ export default async function adminOnly(req: Request, res: Response, next: NextF
   } catch (error) {
     res.status(403).json({
       success: false,
-      error: "Gagal: Token tidak valid atau sudah kadaluarsa",
+      error: "Gagal: Anda tidak memiliki akses ke endpoint ini",
     });
   }
 }
