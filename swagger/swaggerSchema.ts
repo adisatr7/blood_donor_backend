@@ -89,7 +89,19 @@ export const userResponseSchema = {
   },
 };
 
-export const locationSchema = {
+export const locationRequestSchema = {
+  type: "object",
+  properties: {
+    name: { type: "string" },
+    latitude: { type: "number" },
+    longitude: { type: "number" },
+    startTime: { type: "string", format: "date-time" },
+    endTime: { type: "string", format: "date-time" },
+  },
+  required: ["name", "latitude", "longitude", "startTime", "endTime"],
+};
+
+export const locationResponseSchema = {
   type: "object",
   properties: {
     id: { type: "integer" },
