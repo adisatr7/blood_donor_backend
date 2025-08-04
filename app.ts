@@ -25,7 +25,9 @@ GoogleSheetWorker.start(); // Sinkronisasi data ke Google Sheets setiap 5 menit
 app.use("/api/v1/", routes);
 
 // 📖 Setup Swagger untuk dokumentasi API
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs, {
+  customSiteTitle: "Blood Donor API Documentation",
+}));
 
 // ⛔️ Sistem penanganan error otomatis (agar tidak ribet menulis try-catch di *setiap* controller)
 app.use(errorHandler);
