@@ -264,7 +264,7 @@ export default class UserService {
       if (userId === "ERROR") {
         res.status(400).json({
           success: false,
-          error: "ID user tidak tidak boleh kosong",
+          error: "ID user tidak boleh kosong",
         });
         return;
       }
