@@ -8,8 +8,8 @@ export default class AdminService {
       // Ambil nama admin dari request body
       const { name } = req.body;
 
-      // Buat secret key
-      const secretKey = bcrypt.hashSync(name, 10);
+      // Buat secret key secara acak dan aman
+      const secretKey = crypto.randomBytes(32).toString("hex");
 
       // Masukkan data admin baru ke database
       const result = await prisma.admin.create({
