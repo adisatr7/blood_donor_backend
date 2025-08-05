@@ -154,3 +154,12 @@ model Admin {
 
   @@map("admins")
 }
+
+model BloodStorage {
+  id Int       @id @default(autoincrement())
+  type BloodType @map("type")
+  rhesus Rhesus @map("rhesus")
+  quantity Int
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}

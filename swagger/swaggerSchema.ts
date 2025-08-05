@@ -92,6 +92,7 @@ export const userResponseSchema = {
 export const locationRequestSchema = {
   type: "object",
   properties: {
+    secretKey: { type: "string" },
     name: { type: "string" },
     latitude: { type: "number" },
     longitude: { type: "number" },

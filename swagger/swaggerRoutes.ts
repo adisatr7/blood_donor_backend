@@ -1,3 +1,98 @@
+export const bloodStorageRoutes = `
+/**
+ * @swagger
+ * /admin/blood-storage:
+ *   post:
+ *     summary: Set blood storage data
+ *     tags:
+ *       - Blood Storage
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               secretKey:
+ *                 type: string
+ *                 description: Secret key for authentication
+ *               type:
+ *                 type: string
+ *                 description: Blood type (e.g., A, B, AB, O)
+ *               rhesus:
+ *                 type: string
+ *                 description: Rhesus factor (e.g., POSITIVE, NEGATIVE)
+ *               quantity:
+ *                 type: integer
+ *                 description: Quantity of blood in storage
+ *             required:
+ *               - secretKey
+ *               - type
+ *               - rhesus
+ *               - quantity
+ *     responses:
+ *       201:
+ *         description: Blood storage data added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     type:
+ *                       type: string
+ *                     rhesus:
+ *                       type: string
+ *                     quantity:
+ *                       type: integer
+ *       400:
+ *         description: Invalid request body
+ */
+
+/**
+ * @swagger
+ * /admin/blood-storage:
+ *   get:
+ *     summary: Get all blood storage data
+ *     tags:
+ *       - Blood Storage
+ *     requestBody:
+ *           required: true
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   secretKey:
+ *                     type: string
+ *                     description: Secret key for authentication
+ *     responses:
+ *       200:
+ *         description: List of all blood storage data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: integer
+ *                   type:
+ *                     type: string
+ *                   rhesus:
+ *                     type: string
+ *                   quantity:
+ *                     type: integer
+ */
+`;
+
 export const userRoutes = `
 /**
  * @swagger
@@ -9,7 +104,7 @@ export const userRoutes = `
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             $ref: '#/components/schemas/UserRequest'
  *     responses:
@@ -37,6 +132,16 @@ export const userRoutes = `
  *     summary: Get all users
  *     tags:
  *       - User
+ *     requestBody:
+ *           required: true
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   secretKey:
+ *                     type: string
+ *                     description: Secret key for authentication
  *     responses:
  *       200:
  *         description: List of all users
@@ -61,6 +166,16 @@ export const userRoutes = `
  *         required: true
  *         schema:
  *           type: integer
+ *     requestBody:
+ *           required: true
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   secretKey:
+ *                     type: string
+ *                     description: Secret key for authentication
  *     responses:
  *       200:
  *         description: User details retrieved successfully
