@@ -1,6 +1,6 @@
 import express from "express";
-import validateRequestBody from "../../middlewares/validateRequestBody"
-import BloodStorageService from "../../services/admin/bloodStorageService"
+import validateRequestBody from "../../middlewares/validateRequestBody";
+import BloodStorageService from "../../services/admin/bloodStorageService";
 
 const router = express.Router();
 
