@@ -1,4 +1,4 @@
-import bcrypt from "bcryptjs"
+import crypto from "crypto";
 import type { Request, Response, NextFunction } from "express";
 import prisma from "../../prisma/prismaClient"
 
